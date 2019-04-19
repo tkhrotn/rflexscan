@@ -1,7 +1,21 @@
-The rflexscan package provides functions and classes to analyze spatial count data using the flexible spatial scan statistic developed by Tango and Takahashi (2005) on [R](https://www.r-project.org/).
+rflexscan is an [R](https://www.r-project.org/) package for analysing spatial count data using the flexible spatial scan statistic developed by Tango and Takahashi (2005) and Kulldorff's circular spatial scan statistic (1997).
+This package is designed for any of the following interrelated purposes:
 
-rflexscanは疾病集積性（disease clustering）の検討をするための統計解析をR上で行うことができるパッケージです。集積性の検定には、Kulldorff’s Circular Scan法、Tango and Takahashi’s Flexible Scan法の2つによって検討できます。
-このパッケージはWindows版FleXScanを元に開発しています。
+1. To evaluate reported spatial disease clusters, to see if they are statistically significant.
+2. To test whether a disease is randomly distributed over space.
+3. To perform geographical surveillance of disease, to detect areas of significantly high rates.
+
+rflexscan is developed based on the FleXScan 3.1.2 for Windows developed by Kunihiko Takahashi, Tetsuji Yokoyama and Toshiro Tango.
+
+
+rflexscanは疾病集積性 (disease clustering) の検討をするための統計解析をR上で行うことができるパッケージです。
+以下のような用途に使用できます。
+
+1. 報告された疾患集積性を評価し、それらが統計的に有意であるかどうかを確かめる。
+2. 疾患が空間的にランダムに分布しているかどうかを検定する。
+3. 感染症のサーベイランス、著しく高い割合の地域を検出する。
+
+rflexscanは高橋邦彦、横山徹爾、丹後俊郎によって開発されたWindows版FleXScan 3.1.2を元に開発しています。
 
 # Install インストール
 ```r
