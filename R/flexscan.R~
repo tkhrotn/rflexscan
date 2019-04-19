@@ -1,0 +1,77 @@
+library("igraph")
+
+flexscan <- function(case,
+                     coordinates,
+                     adj_mat,
+                     id=row.names(case),
+                     clustersize=15,
+                     radius=6370,
+                     model="POISSON",
+                     stattype="ORIGINAL",
+                     scanmethod="FLEXIBLE",
+                     ralpha=0.2,
+                     cartesian=FALSE,
+                     simcount=999,
+                     rantype="MULTINOMIAL",
+                     ranseed="4586111",
+                     comments="") {
+  row.names(case) <- id
+  row.names(coordinates) <- id
+  row.names(adj_mat) <- id
+  
+  casefile <- tempfile()
+  coofile <- tempfile()
+  mt0file <- tempfile()
+  mtrfile <- tempfile()
+  resultfile <- tempfile()
+  lambdafile <- tempfile()
+  edgefile <- tempfile()
+  nodefile <- tempfile()
+  rfile <- tempfile()
+  settingfile <- tempfile()
+  
+  write.table(case, file = casefile, quote = FALSE, col.names = FALSE)
+  write.table(coordinates, file = coofile, quote = FALSE, col.names = FALSE)
+  
+  diag(adj_mat) <- 2
+  write.table(adj_mat, file = mt0file, quote = FALSE, col.names = FALSE)
+  
+  for (i in 1:nrow(adj_mat)) {
+    cat(id[adj_mat[i,] != 0], "\n", file = mtrfile, append = TRUE)
+  }
+  
+  # Write setting file
+  cat("[FLEXSCAN]\n", sep = "", file = settingfile, append = TRUE)
+  cat("VERSION=3.1.2\n", sep = "", file =settingfile, append = TRUE)
+  cat("CASE=", casefile, "\n", sep = "", file =settingfile, append = TRUE)
+  cat("COORDINATES=", coofile, "\n", sep = "", file =settingfile, append = TRUE)
+  cat("MATRIX=", mt0file, "\n", sep = "", file =settingfile, append = TRUE)
+  cat("MATRIXmtr=", mtrfile, "\n", sep = "", file =settingfile, append = TRUE)
+  cat("RESULTS=", resultfile, "\n", sep = "", file =settingfile, append = TRUE)
+  cat("LAMBDAFILE=", lambdafile, "\n", sep = "", file =settingfile, append = TRUE)
+  cat("EDGEFILE=", edgefile, "\n", sep = "", file =settingfile, append = TRUE)
+  cat("NODEFILE=", nodefile, "\n", sep = "", file =settingfile, append = TRUE)
+  cat("RFILE=", rfile, "\n", sep = "", file =settingfile, append = TRUE)
+  cat("CLUSTERSIZE=", clustersize, "\n", sep = "", file =settingfile, append = TRUE)
+  cat("RADIUS=", radius, "\n", sep = "", file =settingfile, append = TRUE)
+  cat("MODEL=", model, "\n", sep = "", file =settingfile, append = TRUE)
+  cat("STATTYPE=", as.integer(stattype == "RESTRICT"), "\n", sep = "", file =settingfile, append = TRUE)
+  cat("SCANMETHOD=", scanmethod, "\n", sep = "", file =settingfile, append = TRUE)
+  cat("RALPHA=", ralpha, "\n", sep = "", file =settingfile, append = TRUE)
+  cat("CARTESIAN=", as.integer(cartesian), "\n", sep = "", file =settingfile, append = TRUE)
+  cat("SIMCOUNT=", simcount, "\n", sep = "", file =settingfile, append = TRUE)
+  cat("RANTYPE=", rantype, "\n", sep = "", file =settingfile, append = TRUE)
+  cat("RANSEED=", ranseed, "\n", sep = "", file =settingfile, append = TRUE)
+  cat("COMMENT=", comments, "\n", sep = "", file =settingfile, append = TRUE)
+    
+  exit_code <- runFleXScan(settingfile)
+  
+  result <- scan(resultfile, what = character(), sep = "\n", blank.lines.skip = F)
+  clst <- read.table(rfile, header = TRUE, stringsAsFactors = FALSE)
+  
+  return(list(clster=clst, log=result))
+}
+
+summary.rflexscan <- function(object, ...) {
+  
+}
