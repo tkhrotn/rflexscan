@@ -3,7 +3,7 @@ The rflexscan package provides functions and classes to analyze spatial count da
 rflexscanは疾病集積性（disease clustering）の検討をするための統計解析をR上で行うことができるパッケージです。集積性の検定には、Kulldorff’s Circular Scan法、Tango and Takahashi’s Flexible Scan法の2つによって検討できます。
 このパッケージはWindows版FleXScanを元に開発しています。
 
-# Install
+# Install インストール
 ```r
 # Install development version from GitHub:
 install.packages("devtools")
