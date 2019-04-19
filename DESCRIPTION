@@ -12,7 +12,7 @@ Description: The FleXScan (https://sites.google.com/site/flexscansoftware/home)
     functions for running FleXScan on R.
 License: GPL-3 + file LICENSE
 Depends: R (>= 3.1.0)
-Imports: Rcpp (>= 0.12.19),
+Imports: Rcpp,
     igraph
 LinkingTo: Rcpp
 Suggests: knitr,
