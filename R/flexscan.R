@@ -223,7 +223,7 @@ flexscan <- function(case,
   if (!verbose)
     sink()
   
-  result <- scan(resultfile, what = character(), sep = "\n", blank.lines.skip = FALSE)
+  result <- scan(resultfile, what = character(), sep = "\n", blank.lines.skip = FALSE, quiet = TRUE)
   clst <- read.table(rfile, header = TRUE, stringsAsFactors = FALSE)
   
   if (toupper(model) == "POISSON") {
@@ -259,6 +259,11 @@ flexscan <- function(case,
     colnames(case) <- c("Observed", "Population")
   }
   
+  clusterrank <- numeric(nrow(case))
+  for (i in 1:length(clst)) {
+    clusterrank[clst[[i]]$area] <- i
+  }
+  
   diag(adj_mat) <- 0
   for (i in 1:length(clst)) {
     x <- clst[[i]]
@@ -266,7 +271,7 @@ flexscan <- function(case,
   }
 
   retval <- list(case=case, coordinates=coordinates, name=name,
-                 cluster=clst, clustersize=clustersize, 
+                 cluster=clst, clusterrank=clusterrank, clustersize=clustersize, 
                  radius=radius, model=model, stattype=stattype,
                  scanmethod=scanmethod, ralpha=ralpha, cartesian=cartesian,
                  simcount=simcount, rantype=rantype, ranseed=ranseed,
@@ -316,13 +321,11 @@ plot.rflexscan <- function(object,
   V(g)$label <- ""
   E(g)$color <- "gray40"
   
-  labs <- character()
   # color clusters
   for (i in 1:length(object$cluster)) {
     if (i %in% rank & object$cluster[[i]]$pval <= pval) {
       V(g)$color[object$cluster[[i]]$area] <- col[i]
       E(g)$color[E(g)$weight == 10 * i] <- col[i]
-      labs <- c(labs, sprintf("%d (P=%f)", i, object$cluster[[i]]$pval))
     }
   }
   
