@@ -150,7 +150,8 @@ flexscan <- function(case,
                      simcount=999,
                      rantype=flexscan.rantype,
                      ranseed=4586111,
-                     comments="") {
+                     comments="",
+                     verbose=FALSE) {
   model <- match.arg(toupper(model), flexscan.model)
   stattype <- match.arg(toupper(stattype), flexscan.stattype)
   scanmethod <- match.arg(toupper(scanmethod), flexscan.scanmethod)
@@ -176,6 +177,7 @@ flexscan <- function(case,
   nodefile <- tempfile()
   rfile <- tempfile()
   settingfile <- tempfile()
+  stdoutfile <- tempfile()
   
   write.table(case, file = casefile, quote = FALSE, col.names = FALSE)
   write.table(coordinates, file = coofile, quote = FALSE, col.names = FALSE)
@@ -211,9 +213,15 @@ flexscan <- function(case,
   cat("RANSEED=", ranseed, "\n", sep = "", file =settingfile, append = TRUE)
   cat("COMMENT=", comments, "\n", sep = "", file =settingfile, append = TRUE)
   
+  if (!verbose)
+    sink(stdoutfile)
+  
   start <- date()
   exit_code <- runFleXScan(settingfile)
   end <- date()
+  
+  if (!verbose)
+    sink()
   
   result <- scan(resultfile, what = character(), sep = "\n", blank.lines.skip = FALSE)
   clst <- read.table(rfile, header = TRUE, stringsAsFactors = FALSE)
