@@ -8,7 +8,8 @@ flexscan(case, coordinates, adj_mat, name = row.names(case),
   clustersize = 15, radius = 6370, model = flexscan.model,
   stattype = flexscan.stattype, scanmethod = flexscan.scanmethod,
   ralpha = 0.2, cartesian = FALSE, simcount = 999,
-  rantype = flexscan.rantype, ranseed = 4586111, comments = "")
+  rantype = flexscan.rantype, ranseed = 4586111, comments = "",
+  verbose = FALSE)
 }
 \arguments{
 \item{case}{The frequency of disease in each area.
@@ -46,7 +47,7 @@ longitude. It is approximately 6370 km in Japan.}
 \item{scanmethod}{Scanning method to be used (case-insensitive).
 \describe{
   \item{"FLEXIBLE"}{flexible scan statistic by Tango and Takahashi (2005)}
-  \item{"CIRCULAR"}{circular scan statistic by Kulldorff}
+  \item{"CIRCULAR"}{circular scan statistic by Kulldorff (1997)}
 }}
 
 \item{ralpha}{Parameter for the restricted likelihood ratio statistic.}
@@ -96,6 +97,7 @@ legend("topright", legend = labs, col = rainbow(length(fls$cluster)), lty = 1)
 \itemize{
   \item Tango T. and Takahashi K. (2005). A flexibly shaped spatial scan statistic for detecting clusters, International Journal of Health Geographics 4:11.
   \item Kulldorff M. and Nagarwalla N. (1995). Spatial disease clusters: Detection and Inference. Statistics in Medicine 14:799-810.
+  \item Kulldorff M. (1997). A spatial scan statistic. Communications in Statistics: Theory and Methods, 26:1481-1496.
   \item Tango T. (2008). A spatial scan statistic with a restricted likelihood ratio. Japanese Journal of Biometrics 29(2):75-95.
 }
 }

@@ -2,10 +2,10 @@
 % Please edit documentation in R/flexscan.R
 \name{summary.rflexscan}
 \alias{summary.rflexscan}
-\title{Print summary to the terminal}
+\title{Summaries of flexscan}
 \usage{
 \method{summary}{rflexscan}(object, ...)
 }
 \description{
-Print summary to the terminal
+Summaries of flexscan
 }

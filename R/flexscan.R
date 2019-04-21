@@ -152,6 +152,8 @@ flexscan <- function(case,
                      ranseed=4586111,
                      comments="",
                      verbose=FALSE) {
+  call <- match.call()
+  
   model <- match.arg(toupper(model), flexscan.model)
   stattype <- match.arg(toupper(stattype), flexscan.stattype)
   scanmethod <- match.arg(toupper(scanmethod), flexscan.scanmethod)
@@ -270,7 +272,7 @@ flexscan <- function(case,
     adj_mat[x$area,x$area] <- adj_mat[x$area,x$area] * (10 * i)
   }
 
-  retval <- list(case=case, coordinates=coordinates, name=name,
+  retval <- list(call=call, case=case, coordinates=coordinates, name=name,
                  cluster=clst, clusterrank=clusterrank, clustersize=clustersize, 
                  radius=radius, model=model, stattype=stattype,
                  scanmethod=scanmethod, ralpha=ralpha, cartesian=cartesian,
@@ -281,13 +283,86 @@ flexscan <- function(case,
   return(retval)
 }
 
-#' Print summary to the terminal
+
+#' Summaries of flexscan
 #' 
 #' @export
 #' 
 summary.rflexscan <- function(object, ...) {
-  cat(object$summary, sep = "\n")
+  n_area <- sapply(object$cluster, function(i){length(i$area)})
+  max_dist <- sapply(object$cluster, function(i) {i$max_dist})
+  n_case <- sapply(object$cluster, function(i) {i$n_case})
+  stats <- sapply(object$cluster, function(i) {i$stats})
+  pval <- sapply(object$cluster, function(i) {i$pval})
+  n_cluster <- length(object$cluster)
+  total_areas <- nrow(object$case)
+  total_cases <- sum(object$case[,"Observed"])
+  areas <- lapply(object$cluster, function(i) {i$area})
+
+  if (toupper(object$model) == "POISSON") {
+    expected <- sapply(object$cluster, function(i) {i$expected})
+    RR <- sapply(object$cluster, function(i) {i$RR})
+
+    retval <- list(call=object$call, clustersize=object$clustersize, 
+                   n_cluster=n_cluster, name=object$name,
+                   total_areas=total_areas, total_cases=total_cases,
+                   n_area=n_area, max_dist=max_dist, n_case=n_case, stats=stats,
+                   pval=pval, areas=areas, expected=expected, RR=RR)
+  } else {
+    population <- sapply(object$cluster, function(i) {i$population})
+
+    retval <- list(call=object$call, clustersize=object$clustersize, 
+                   n_cluster=n_cluster, name=object$name,
+                   total_areas=total_areas, total_cases=total_cases,
+                   n_area=n_area, max_dist=max_dist, n_case=n_case, stats=stats,
+                   pval=pval, areas=areas, population=population)
+  }
+
+  class(retval) <- "summary.rflexscan"
+  return(retval)
 }
+
+
+
+#' Print results of flexscan
+#' 
+#' @export
+#' 
+print.summary.rflexscan <- function(x, ...) {
+  cat("Call:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), 
+      "\n\n", sep = "")
+  
+  cat("Clusters:\n")
+  signif <- symnum(x$pval, corr = FALSE, 
+                   na = FALSE, cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1), 
+                   symbols = c("***", "**", "*", ".", " "))
+  if ("expected" %in% names(x)) {
+    table <- cbind(NumArea=x$n_area, MaxDist=x$max_dist, Case=x$n_case, 
+                   Expected=x$expected, RR=x$RR, Stats=x$stats, P=x$pval,
+                   signif)
+    row.names(table) <- 1:x$n_cluster
+    colnames(table)[8] <- ""
+    print(table, quote = FALSE, right = TRUE, print.gap = 2)
+  } else {
+    table <- cbind(NumArea=x$n_area, MaxDist=x$max_dist, Case=x$n_case,
+                   Population=x$population, Stats=x$stats, P=x$pval, signif)
+    row.names(table) <- 1:x$n_cluster
+    colnames(table)[7] <- ""
+    print(table, quote = FALSE, right = TRUE, print.gap = 2)
+  }
+  cat("---\nSignif. codes: ", attr(signif, "legend"), "\n\n")
+  
+  cat("Census areas included:\n")
+  for (i in 1:x$n_cluster) {
+    cat("[", i, "] ", paste(x$name[x$areas[[i]]], collapse = " "), 
+        sep = "", fill = TRUE)
+  }
+  
+  cat("\nLimit length of cluster:", x$clustersize, "\n")
+  cat("Number of census areas:", x$total_areas, "\n")
+  cat("Total cases:", x$total_cases, "\n\n")
+}
+
 
 #' Graph plotting of flexscan results
 #' 
