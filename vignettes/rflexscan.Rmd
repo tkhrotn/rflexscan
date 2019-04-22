@@ -1,6 +1,6 @@
 ---
-title: "Vignette Title"
-author: "Vignette Author"
+title: "Introduction to rflexscan package"
+author: "Takahiro Otani"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -18,40 +18,58 @@ knitr::opts_chunk$set(
 
 **rflexscan** is an [R](https://www.r-project.org/) package for analysing spatial count data using the flexible spatial scan statistic developed by Tango and Takahashi (2005) and Kulldorff's circular spatial scan statistic (1997).
 
-## Example data
+```{r}
+library(rflexscan)
+
+# Coordinates of each city in Saitama prefecture
+data("saitama_coordinates")
+
+# Adjacency matrix
+data("saitama_adj_mat")
+
+# Count data
+data("saitama_heart_m")
+```
+
+saita`saitama_coordinates` contains latitude and longitude of 92 cities in Saitama prefecture, Japan.
+The first column is latitude and the second column is longitude as follows.
+```{r}
+head(saitama_coordinates)
+```
+Although we use latitude and longitude here, Cartesian coordinate system (XY coordinates) is also possible.
+
+`saitama_adj_mat` is a square matrix used to represent adjacency relationships between any cities.
+
+The function `flexscan`.
 
 ```{r}
-library(rgdal)
-saitama <- readOGR("C:/Users/otani/Desktop/Work/データ/N03-180101_11_GML/N03-18_11_180101.shp")
-data("saitama_coordinates")
+fls <- flexscan(saitama_heart_m, saitama_coordinates, saitama_adj_mat)
+summary(fls)
+```
+
+```{r}
+plot(fls)
 ```
 
 ## Figures
 
 The figure sizes have been customised so that you can easily put two images side-by-side. 
 
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+# Collaborate with GIS packages
+
+## sf
+
+```{r}
+library(sf)
+saitama_sf <- st_read(dsn = "N03-001001_11_GML/N03-001001_11-g_AdministrativeBoundary.shp", stringsAsFactors = FALSE)
+plot(saitama_sf)
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
+## rgdal
 
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
 
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
-
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+```{r}
+library(rgdal)
+saitama_sp <- readOGR(dsn = "C:/Users/otani/Desktop/Work/Data/N03-001001_11_GML/N03-001001_11-g_AdministrativeBoundary.shp", encoding = "UTF-8", stringsAsFactors = FALSE)
+plot(saitama_sp)
 ```
-
-Also a quote using `>`:
-
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
