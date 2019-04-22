@@ -44,7 +44,7 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' @param lat
 #' An array of latitude or a column name in `data`.
 #' 
-#' @param long
+#' @param lon
 #' An array of latitude or a column name in `data`.
 #' 
 #' @param observed
@@ -61,13 +61,6 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' @param data
 #' A dataset containing coordinates, names for each area, and disease case data.
 #' 
-#' @param coordinates
-#' The geographic coordinates for each area.
-#' Coordinates may be specified either using the standard Cartesian 
-#' coordinates system or in latitude and longitude. The first column is the
-#' x-coordinate or the latitude, and the second column is the y-coordinate or
-#' longitude.
-#' 
 #' @param adj_mat
 #' The adjacency matrix.
 #' 
@@ -80,13 +73,6 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' @param radius
 #' Radius of Earth to calculate a distance between two sets of latitude and
 #' longitude. It is approximately 6370 km in Japan.
-#' 
-#' @param model
-#' Statistical model to be used (case-insensitive).
-#' \describe{
-#'   \item{"POISSON"}{for the data of the 'observed number' and the 'expected number'}
-#'   \item{"BINOMIAL"}{for the data of the 'observed number' and the 'population'}
-#' }
 #' 
 #' @param stattype
 #' Statistic type to be used (case-insensitive).
@@ -104,9 +90,6 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' 
 #' @param ralpha
 #' Parameter for the restricted likelihood ratio statistic.
-#' 
-#' @param cartesian
-#' Set \code{TRUE} for Cartesian coordinates.
 #' 
 #' @param simcount
 #' The number of Monte Carlo replications to calculate a p-value for statistical
@@ -156,15 +139,13 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' 
 #' @export
 #' 
-flexscan <- function(x, y, lat, long, nb, name, observed, expected, population,
+flexscan <- function(x, y, lat, lon, nb, name, observed, expected, population,
                      data,
                      clustersize=15,
                      radius=6370,
-                     model=flexscan.model,
                      stattype=flexscan.stattype,
                      scanmethod=flexscan.scanmethod,
                      ralpha=0.2,
-                     latlong=FALSE,
                      simcount=999,
                      rantype=flexscan.rantype,
                      ranseed=4586111,
@@ -172,41 +153,53 @@ flexscan <- function(x, y, lat, long, nb, name, observed, expected, population,
                      verbose=FALSE) {
   call <- match.call()
 
-  model <- match.arg(toupper(model), flexscan.model)
   stattype <- match.arg(toupper(stattype), flexscan.stattype)
   scanmethod <- match.arg(toupper(scanmethod), flexscan.scanmethod)
   rantype <- match.arg(toupper(rantype), flexscan.rantype)
 
   if (missing(data)) {
-    if (latlong) {
-      coordinates <- cbind(lat, long)
+    if (!missing(lat) && !missing(lon)) {
+      coordinates <- cbind(lat, lon)
+      latlon <- TRUE
     } else {
       coordinates <- cbind(x, y)
+      latlon <- FALSE
     }
     
-    if (model == "POISSON") {
+    if (!missing(expected)) {
       case <- cbind(observed, expected)
+      model <- "POISSON"
     } else {
       case <- cbind(observed, population)
+      model <- "BINOMIAL"
     }
     
-    row.names(coordinates) <- name
-    row.names(case) <- name
+    row.names(coordinates) <- as.character(name)
+    row.names(case) <- as.character(name)
   } else {
-    if (latlong) {
-      coordinates <- cbind(data[,lat], data[,long])
+    if (!is.data.frame(data)) {
+      data <- data.frame(data)
+    }
+    
+    if (!missing(lat) && !missing(lon)) {
+      coordinates <- cbind(data[,lat], data[,lon])
+      latlon <- TRUE
     } else {
       coordinates <- cbind(data[,x], data[,y])
+      latlon <- FALSE
     }
     
-    if (model == "POISSON") {
+    if (!missing(expected)) {
       case <- cbind(data[,observed], data[,expected])
+      model <- "POISSON"
     } else {
       case <- cbind(data[,observed], data[,population])
+      model <- "BINOMIAL"
     }
     
-    row.names(coordinates) <- data[,name]
-    row.names(case) <- data[,name]
+    row.names(coordinates) <- as.character(data[,name])
+    row.names(case) <- as.character(data[,name])
+    name <- as.character(data[,name])
   } 
   
   if (is.matrix(nb)) {
@@ -217,6 +210,8 @@ flexscan <- function(x, y, lat, long, nb, name, observed, expected, population,
       adj_mat[i, nb[[i]]] <- 1
     }
   }
+  row.names(adj_mat) <- row.names(coordinates)
+  colnames(adj_mat) <- row.names(coordinates)
   
   casefile <- tempfile()
   coofile <- tempfile()
@@ -258,7 +253,7 @@ flexscan <- function(x, y, lat, long, nb, name, observed, expected, population,
   cat("STATTYPE=", as.integer(stattype == "RESTRICTED"), "\n", sep = "", file =settingfile, append = TRUE)
   cat("SCANMETHOD=", scanmethod, "\n", sep = "", file =settingfile, append = TRUE)
   cat("RALPHA=", ralpha, "\n", sep = "", file =settingfile, append = TRUE)
-  cat("CARTESIAN=", as.integer(!latlong), "\n", sep = "", file =settingfile, append = TRUE)
+  cat("CARTESIAN=", as.integer(!latlon), "\n", sep = "", file =settingfile, append = TRUE)
   cat("SIMCOUNT=", simcount, "\n", sep = "", file =settingfile, append = TRUE)
   cat("RANTYPE=", rantype, "\n", sep = "", file =settingfile, append = TRUE)
   cat("RANSEED=", ranseed, "\n", sep = "", file =settingfile, append = TRUE)
@@ -324,7 +319,7 @@ flexscan <- function(x, y, lat, long, nb, name, observed, expected, population,
   retval <- list(call=call, case=case, coordinates=coordinates, name=name,
                  cluster=clst, clusterrank=clusterrank, clustersize=clustersize, 
                  radius=radius, model=model, stattype=stattype,
-                 scanmethod=scanmethod, ralpha=ralpha, latlong=latlong,
+                 scanmethod=scanmethod, ralpha=ralpha, latlon=latlon,
                  simcount=simcount, rantype=rantype, ranseed=ranseed,
                  comments=comments, summary=result, adj_mat=adj_mat)
   class(retval) <- "rflexscan"
@@ -367,7 +362,7 @@ summary.rflexscan <- function(object, ...) {
                  n_cluster=n_cluster, name=object$name,
                  total_areas=total_areas, total_cases=total_cases,
                  areas=areas, stattype=object$stattype, model=object$mode,
-                 scanmethod=object$scanmethod, latlong=object$latlong,
+                 scanmethod=object$scanmethod, latlon=object$latlon,
                  clusters=table)
   
   class(retval) <- "summary.rflexscan"
@@ -401,12 +396,12 @@ print.summary.rflexscan <- function(x, ...) {
   
   cat("\nLimit length of cluster:", x$clustersize, "\n")
   cat("Number of census areas:", x$total_areas, "\n")
-  if (x$latlong) {
-    cat("Coordinates: Latitude and Longitude\n")
+  cat("Total cases:", x$total_cases, "\n")
+  if (x$latlon) {
+    cat("Coordinates: Latitude/Longitude\n")
   } else {
     cat("Coordinates: Cartesian\n")
   }
-  cat("Total cases:", x$total_cases, "\n")
   cat("Scanning Method:", x$scanmethod, "\n")
   cat("Model:", x$model, "\n\n")
 }
@@ -453,7 +448,7 @@ plot.rflexscan <- function(object,
     }
   }
   
-  if (object$cartesian) {
+  if (!object$latlon) {
     plot(g, axes = TRUE, layout = as.matrix(object$coordinates[,c(1,2)]), rescale = FALSE, xlab = xlab, ylab = ylab, xlim = xlim, ylim = ylim, ...)
   } else {
     # flip X-Y (x:longitude, y:latitude)
