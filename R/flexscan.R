@@ -35,11 +35,31 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' Analyzes spatial count data using the flexible/circular 
 #' spatial scan statistic.
 #' 
-#' @param case
-#' The frequency of disease in each area.
-#' The first column is the observed number of diseases, and the
-#' second column is the expected number of diseases under the null
-#' hypothesis, or the background population at risk in each area. 
+#' @param x
+#' An array of X-coordinates or a column name in `data`.
+#' 
+#' @param y
+#' An arrya of Y-coordinates or a column name in `data`.
+#' 
+#' @param lat
+#' An array of latitude or a column name in `data`.
+#' 
+#' @param long
+#' An array of latitude or a column name in `data`.
+#' 
+#' @param observed
+#' An array of observed number of diseases or a clumn name in `data`
+#' 
+#' @param expected
+#' An array of expected number of diseases under the null hypothesis or a clumn
+#' name in `data`. This is used on "Poisson" model.
+#' 
+#' @param population
+#' An array of background population at risk in each area or a clumn name in 
+#' `data`. This is used on "Binomial" model.
+#' 
+#' @param data
+#' A dataset containing coordinates, names for each area, and disease case data.
 #' 
 #' @param coordinates
 #' The geographic coordinates for each area.
@@ -136,37 +156,66 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' 
 #' @export
 #' 
-flexscan <- function(case,
-                     coordinates,
-                     adj_mat,
-                     name=row.names(case),
+flexscan <- function(x, y, lat, long, nb, name, observed, expected, population,
+                     data,
                      clustersize=15,
                      radius=6370,
                      model=flexscan.model,
                      stattype=flexscan.stattype,
                      scanmethod=flexscan.scanmethod,
                      ralpha=0.2,
-                     cartesian=TRUE,
+                     latlong=FALSE,
                      simcount=999,
                      rantype=flexscan.rantype,
                      ranseed=4586111,
                      comments="",
                      verbose=FALSE) {
   call <- match.call()
-  
+
   model <- match.arg(toupper(model), flexscan.model)
   stattype <- match.arg(toupper(stattype), flexscan.stattype)
   scanmethod <- match.arg(toupper(scanmethod), flexscan.scanmethod)
   rantype <- match.arg(toupper(rantype), flexscan.rantype)
+
+  if (missing(data)) {
+    if (latlong) {
+      coordinates <- cbind(lat, long)
+    } else {
+      coordinates <- cbind(x, y)
+    }
     
-  row.names(case) <- name
-  row.names(coordinates) <- name
-  row.names(adj_mat) <- name
-  
-  if (cartesian) {
-    colnames(coordinates) <- c("X", "Y")
+    if (model == "POISSON") {
+      case <- cbind(observed, expected)
+    } else {
+      case <- cbind(observed, population)
+    }
+    
+    row.names(coordinates) <- name
+    row.names(case) <- name
   } else {
-    colnames(coordinates) <- c("Latitude", "Longitude")
+    if (latlong) {
+      coordinates <- cbind(data[,lat], data[,long])
+    } else {
+      coordinates <- cbind(data[,x], data[,y])
+    }
+    
+    if (model == "POISSON") {
+      case <- cbind(data[,observed], data[,expected])
+    } else {
+      case <- cbind(data[,observed], data[,population])
+    }
+    
+    row.names(coordinates) <- data[,name]
+    row.names(case) <- data[,name]
+  } 
+  
+  if (is.matrix(nb)) {
+    adj_mat <- nb
+  } else {
+    adj_mat <- matrix(0, nrow = nrow(coordinates), ncol = nrow(coordinates))
+    for (i in 1:nrow(coordinates)) {
+      adj_mat[i, nb[[i]]] <- 1
+    }
   }
   
   casefile <- tempfile()
@@ -205,13 +254,13 @@ flexscan <- function(case,
   cat("RFILE=", rfile, "\n", sep = "", file =settingfile, append = TRUE)
   cat("CLUSTERSIZE=", clustersize, "\n", sep = "", file =settingfile, append = TRUE)
   cat("RADIUS=", radius, "\n", sep = "", file =settingfile, append = TRUE)
-  cat("MODEL=", toupper(model), "\n", sep = "", file =settingfile, append = TRUE)
+  cat("MODEL=", model, "\n", sep = "", file =settingfile, append = TRUE)
   cat("STATTYPE=", as.integer(stattype == "RESTRICTED"), "\n", sep = "", file =settingfile, append = TRUE)
-  cat("SCANMETHOD=", toupper(scanmethod), "\n", sep = "", file =settingfile, append = TRUE)
+  cat("SCANMETHOD=", scanmethod, "\n", sep = "", file =settingfile, append = TRUE)
   cat("RALPHA=", ralpha, "\n", sep = "", file =settingfile, append = TRUE)
-  cat("CARTESIAN=", as.integer(cartesian), "\n", sep = "", file =settingfile, append = TRUE)
+  cat("CARTESIAN=", as.integer(!latlong), "\n", sep = "", file =settingfile, append = TRUE)
   cat("SIMCOUNT=", simcount, "\n", sep = "", file =settingfile, append = TRUE)
-  cat("RANTYPE=", toupper(rantype), "\n", sep = "", file =settingfile, append = TRUE)
+  cat("RANTYPE=", rantype, "\n", sep = "", file =settingfile, append = TRUE)
   cat("RANSEED=", ranseed, "\n", sep = "", file =settingfile, append = TRUE)
   cat("COMMENT=", comments, "\n", sep = "", file =settingfile, append = TRUE)
   
@@ -275,7 +324,7 @@ flexscan <- function(case,
   retval <- list(call=call, case=case, coordinates=coordinates, name=name,
                  cluster=clst, clusterrank=clusterrank, clustersize=clustersize, 
                  radius=radius, model=model, stattype=stattype,
-                 scanmethod=scanmethod, ralpha=ralpha, cartesian=cartesian,
+                 scanmethod=scanmethod, ralpha=ralpha, latlong=latlong,
                  simcount=simcount, rantype=rantype, ranseed=ranseed,
                  comments=comments, summary=result, adj_mat=adj_mat)
   class(retval) <- "rflexscan"
@@ -289,35 +338,38 @@ flexscan <- function(case,
 #' @export
 #' 
 summary.rflexscan <- function(object, ...) {
-  n_area <- sapply(object$cluster, function(i){length(i$area)})
-  max_dist <- sapply(object$cluster, function(i) {i$max_dist})
-  n_case <- sapply(object$cluster, function(i) {i$n_case})
-  stats <- sapply(object$cluster, function(i) {i$stats})
-  pval <- sapply(object$cluster, function(i) {i$pval})
   n_cluster <- length(object$cluster)
   total_areas <- nrow(object$case)
   total_cases <- sum(object$case[,"Observed"])
   areas <- lapply(object$cluster, function(i) {i$area})
 
+  n_area <- sapply(object$cluster, function(i){length(i$area)})
+  max_dist <- sapply(object$cluster, function(i) {i$max_dist})
+  n_case <- sapply(object$cluster, function(i) {i$n_case})
+  stats <- sapply(object$cluster, function(i) {i$stats})
+  pval <- sapply(object$cluster, function(i) {i$pval})
+  
   if (toupper(object$model) == "POISSON") {
     expected <- sapply(object$cluster, function(i) {i$expected})
     RR <- sapply(object$cluster, function(i) {i$RR})
 
-    retval <- list(call=object$call, clustersize=object$clustersize, 
-                   n_cluster=n_cluster, name=object$name,
-                   total_areas=total_areas, total_cases=total_cases,
-                   n_area=n_area, max_dist=max_dist, n_case=n_case, stats=stats,
-                   pval=pval, areas=areas, expected=expected, RR=RR)
+    table <- cbind(NumArea=n_area, MaxDist=max_dist, Case=n_case, 
+                   Expected=expected, RR=RR, Stats=stats, P=pval)
   } else {
     population <- sapply(object$cluster, function(i) {i$population})
 
-    retval <- list(call=object$call, clustersize=object$clustersize, 
-                   n_cluster=n_cluster, name=object$name,
-                   total_areas=total_areas, total_cases=total_cases,
-                   n_area=n_area, max_dist=max_dist, n_case=n_case, stats=stats,
-                   pval=pval, areas=areas, population=population)
+    table <- cbind(NumArea=n_area, MaxDist=max_dist, Case=n_case,
+                   Population=population, Stats=stats, P=pval)
   }
+  row.names(table) <- 1:n_cluster
 
+  retval <- list(call=object$call, clustersize=object$clustersize, 
+                 n_cluster=n_cluster, name=object$name,
+                 total_areas=total_areas, total_cases=total_cases,
+                 areas=areas, stattype=object$stattype, model=object$mode,
+                 scanmethod=object$scanmethod, latlong=object$latlong,
+                 clusters=table)
+  
   class(retval) <- "summary.rflexscan"
   return(retval)
 }
@@ -329,27 +381,16 @@ summary.rflexscan <- function(object, ...) {
 #' @export
 #' 
 print.summary.rflexscan <- function(x, ...) {
-  cat("Call:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), 
+  cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), 
       "\n\n", sep = "")
   
   cat("Clusters:\n")
-  signif <- symnum(x$pval, corr = FALSE, 
+  signif <- symnum(x$clusters[,"P"], corr = FALSE, 
                    na = FALSE, cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1), 
                    symbols = c("***", "**", "*", ".", " "))
-  if ("expected" %in% names(x)) {
-    table <- cbind(NumArea=x$n_area, MaxDist=x$max_dist, Case=x$n_case, 
-                   Expected=x$expected, RR=x$RR, Stats=x$stats, P=x$pval,
-                   signif)
-    row.names(table) <- 1:x$n_cluster
-    colnames(table)[8] <- ""
-    print(table, quote = FALSE, right = TRUE, print.gap = 2)
-  } else {
-    table <- cbind(NumArea=x$n_area, MaxDist=x$max_dist, Case=x$n_case,
-                   Population=x$population, Stats=x$stats, P=x$pval, signif)
-    row.names(table) <- 1:x$n_cluster
-    colnames(table)[7] <- ""
-    print(table, quote = FALSE, right = TRUE, print.gap = 2)
-  }
+  table <- cbind(x$clusters, signif)
+  colnames(table)[ncol(table)] <- ""
+  print(table, quote = FALSE, right = TRUE, print.gap = 2)
   cat("---\nSignif. codes: ", attr(signif, "legend"), "\n\n")
   
   cat("Census areas in cluster:\n")
@@ -360,9 +401,16 @@ print.summary.rflexscan <- function(x, ...) {
   
   cat("\nLimit length of cluster:", x$clustersize, "\n")
   cat("Number of census areas:", x$total_areas, "\n")
-  cat("Total cases:", x$total_cases, "\n\n")
+  if (x$latlong) {
+    cat("Coordinates: Latitude and Longitude\n")
+  } else {
+    cat("Coordinates: Cartesian\n")
+  }
+  cat("Total cases:", x$total_cases, "\n")
+  cat("Scanning Method:", x$scanmethod, "\n")
+  cat("Model:", x$model, "\n\n")
 }
-
+  
 
 #' Graph plotting of flexscan results
 #' 

@@ -4,28 +4,33 @@
 \alias{flexscan}
 \title{Analyze spatial count data}
 \usage{
-flexscan(case, coordinates, adj_mat, name = row.names(case),
+flexscan(x, y, lat, long, nb, name, observed, expected, population, data,
   clustersize = 15, radius = 6370, model = flexscan.model,
   stattype = flexscan.stattype, scanmethod = flexscan.scanmethod,
-  ralpha = 0.2, cartesian = FALSE, simcount = 999,
+  ralpha = 0.2, latlong = FALSE, simcount = 999,
   rantype = flexscan.rantype, ranseed = 4586111, comments = "",
   verbose = FALSE)
 }
 \arguments{
-\item{case}{The frequency of disease in each area.
-The first column is the observed number of diseases, and the
-second column is the expected number of diseases under the null
-hypothesis, or the background population at risk in each area.}
+\item{x}{An array of X-coordinates or a column name in `data`.}
 
-\item{coordinates}{The geographic coordinates for each area.
-Coordinates may be specified either using the standard Cartesian 
-coordinates system or in latitude and longitude. The first column is the
-x-coordinate or the latitude, and the second column is the y-coordinate or
-longitude.}
+\item{y}{An arrya of Y-coordinates or a column name in `data`.}
 
-\item{adj_mat}{The adjacency matrix.}
+\item{lat}{An array of latitude or a column name in `data`.}
+
+\item{long}{An array of latitude or a column name in `data`.}
 
 \item{name}{The name of each area.}
+
+\item{observed}{An array of observed number of diseases or a clumn name in `data`}
+
+\item{expected}{An array of expected number of diseases under the null hypothesis or a clumn
+name in `data`. This is used on "Poisson" model.}
+
+\item{population}{An array of background population at risk in each area or a clumn name in 
+`data`. This is used on "Binomial" model.}
+
+\item{data}{A dataset containing coordinates, names for each area, and disease case data.}
 
 \item{clustersize}{The number of maximum spatial cluster size to scan.}
 
@@ -52,8 +57,6 @@ longitude. It is approximately 6370 km in Japan.}
 
 \item{ralpha}{Parameter for the restricted likelihood ratio statistic.}
 
-\item{cartesian}{Set \code{TRUE} for Cartesian coordinates.}
-
 \item{simcount}{The number of Monte Carlo replications to calculate a p-value for statistical
 test.}
 
@@ -66,6 +69,16 @@ test.}
 \item{ranseed}{The seed for generating random numbers in the Monte Carlo simulation.}
 
 \item{comments}{Comments for the analysis which will be written in summary.}
+
+\item{coordinates}{The geographic coordinates for each area.
+Coordinates may be specified either using the standard Cartesian 
+coordinates system or in latitude and longitude. The first column is the
+x-coordinate or the latitude, and the second column is the y-coordinate or
+longitude.}
+
+\item{adj_mat}{The adjacency matrix.}
+
+\item{cartesian}{Set \code{TRUE} for Cartesian coordinates.}
 }
 \value{
 An \code{rflexscan} object which contains analysis results and specified
