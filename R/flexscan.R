@@ -146,7 +146,7 @@ flexscan <- function(case,
                      stattype=flexscan.stattype,
                      scanmethod=flexscan.scanmethod,
                      ralpha=0.2,
-                     cartesian=FALSE,
+                     cartesian=TRUE,
                      simcount=999,
                      rantype=flexscan.rantype,
                      ranseed=4586111,
@@ -352,7 +352,7 @@ print.summary.rflexscan <- function(x, ...) {
   }
   cat("---\nSignif. codes: ", attr(signif, "legend"), "\n\n")
   
-  cat("Census areas included:\n")
+  cat("Census areas in cluster:\n")
   for (i in 1:x$n_cluster) {
     cat("[", i, "] ", paste(x$name[x$areas[[i]]], collapse = " "), 
         sep = "", fill = TRUE)
@@ -381,16 +381,17 @@ print.summary.rflexscan <- function(x, ...) {
 #' @export
 #' 
 plot.rflexscan <- function(object,
-                           xlim=c(min(object$coordinates[,1]), max(object$coordinates[,1])),
-                           ylim=c(min(object$coordinates[,2]), max(object$coordinates[,2])),
                            col=rainbow(length(object$cluster)),
                            rank=1:length(object$cluster),
                            pval=1,
+                           vertexsize=max(object$coordinates[,1])-min(object$coordinates[,1]),
                            xlab=colnames(object$coordinates)[1],
                            ylab=colnames(object$coordinates)[2],
+                           xlim=c(min(object$coordinates[,1]), max(object$coordinates[,1])),
+                           ylim=c(min(object$coordinates[,2]), max(object$coordinates[,2])),
                            ...) {
   g <- graph_from_adjacency_matrix(object$adj_mat, mode = "undirected", diag = FALSE, weighted = TRUE)
-  V(g)$size <- 1
+  V(g)$size <- vertexsize
   V(g)$frame.color <- "gray40"
   V(g)$color <- "white"
   V(g)$label <- ""
