@@ -11,6 +11,8 @@
 #'   \item Takahashi K, Yokoyama T and Tango T. (2010). FleXScan v3.1: Software for the Flexible Scan Statistic. National Institute of Public Health, Japan.
 #' }
 #' 
+#' @seealso \code{\link{flexscan}}
+#' 
 "_PACKAGE"
 
 #' @useDynLib rflexscan, .registration=TRUE
@@ -36,19 +38,19 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' spatial scan statistic.
 #' 
 #' @param x
-#' An array of X-coordinates or a column name in `data`.
+#' An array of X-coordinates or a column name in \code{data}.
 #' 
 #' @param y
-#' An arrya of Y-coordinates or a column name in `data`.
+#' An arrya of Y-coordinates or a column name in \code{data}.
 #' 
 #' @param lat
-#' An array of latitude or a column name in `data`.
+#' An array of latitude or a column name in \code{data}.
 #' 
 #' @param lon
-#' An array of latitude or a column name in `data`.
+#' An array of longitude or a column name in \code{data}.
 #' 
 #' @param observed
-#' An array of observed number of diseases or a clumn name in `data`
+#' An array of observed number of diseases or a clumn name in \code{data}.
 #' 
 #' @param expected
 #' An array of expected number of diseases under the null hypothesis or a clumn
@@ -61,8 +63,8 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' @param data
 #' A dataset containing coordinates, names for each area, and disease case data.
 #' 
-#' @param adj_mat
-#' The adjacency matrix.
+#' @param nb
+#' A neighbours list or an adjacency matrix.
 #' 
 #' @param name
 #' The name of each area.
@@ -136,6 +138,8 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #'   \item Kulldorff M. (1997). A spatial scan statistic. Communications in Statistics: Theory and Methods, 26:1481-1496.
 #'   \item Tango T. (2008). A spatial scan statistic with a restricted likelihood ratio. Japanese Journal of Biometrics 29(2):75-95.
 #' }
+#' 
+#' @seealso \code{\link{summary.rflexscan}}, \code{\link{plot.rflexscan}}
 #' 
 #' @export
 #' 
