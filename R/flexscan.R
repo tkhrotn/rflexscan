@@ -1,14 +1,25 @@
 #' Analyze spatial count data using the flexible spatial scan statistic
 #'
 #' The rflexscan package provides functions and classes to analyze spatial count
-#' data using the flexible spatial scan statistic developed by Tango and Takahashi (2005).
-#' The original FleXScan software developed by Takahashi et al. is also 
-#' available at \url{https://sites.google.com/site/flexscansoftware/home}.
+#' data using the flexible spatial scan statistic developed by Tango and 
+#' Takahashi (2005). This package designed for any of the following interrelated
+#'  purposes:
+#' \enumerate{
+#'   \item To evaluate reported spatial disease clusters, to see if they are 
+#'         statistically significant.
+#'   \item To test whether a disease is randomly distributed over space.
+#'   \item To perform geographical surveillance of disease, to detect areas of 
+#'         significantly high rates.
+#' }
 #' 
 #' @references 
 #' \itemize{
-#'   \item Tango T. and Takahashi K. (2005). A flexibly shaped spatial scan statistic for detecting clusters, International Journal of Health Geographics 4:11.
-#'   \item Takahashi K, Yokoyama T and Tango T. (2010). FleXScan v3.1: Software for the Flexible Scan Statistic. National Institute of Public Health, Japan.
+#'   \item Tango T. and Takahashi K. (2005). A flexibly shaped spatial scan 
+#'   statistic for detecting clusters, International Journal of Health
+#'   Geographics 4:11.
+#'   \item Takahashi K, Yokoyama T and Tango T. (2010). FleXScan v3.1: Software 
+#'   for the Flexible Scan Statistic. National Institute of Public Health, Japan,
+#'   \url{https://sites.google.com/site/flexscansoftware/home}.
 #' }
 #' 
 #' @seealso \code{\link{flexscan}}
@@ -32,10 +43,11 @@ flexscan.scanmethod <- c("FLEXIBLE", "CIRCULAR")
 flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 
 
-#' Analyze spatial count data
+#' Detect spatial disease clusters using the flexible/circular scan statistic
 #' 
-#' Analyzes spatial count data using the flexible/circular 
-#' spatial scan statistic.
+#' This function Analyzes spatial count data using the flexible spatial scan 
+#' statistic developed by Tango and Takahashi (2005) and Kulldorff‟s circular 
+#' spatial scan statistic (1997) and detect spatial disease clusters.
 #' 
 #' @param x
 #' An array of X-coordinates or a column name in \code{data}.
@@ -79,8 +91,10 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' @param stattype
 #' Statistic type to be used (case-insensitive).
 #' \describe{
-#'   \item{"ORIGINAL"}{the likelihood ratio statistic by Kulldorff and Nagarwalla (1995)}
-#'   \item{"RESTRICTED"}{the restricted likelihood ratio statistic by Tango (2008), with a preset parameter \code{ralpha} for restriction}
+#'   \item{"ORIGINAL"}{the likelihood ratio statistic by Kulldorff and
+#'   Nagarwalla (1995)}
+#'   \item{"RESTRICTED"}{the restricted likelihood ratio statistic by Tango 
+#'   (2008), with a preset parameter \code{ralpha} for restriction}
 #' }
 #' 
 #' @param scanmethod
@@ -100,8 +114,10 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' @param rantype
 #' The type of random number for Monte Carlo simulation (case-insensitive).
 #' \describe{
-#'   \item{"MULTINOMIAL"}{Total number of cases in whole area is fixed. It can be chosen in either Poisson or Binomial model.}
-#'   \item{"POISSON"}{Total number of cases is not fixed. It can be chosen in Poisson model.}
+#'   \item{"MULTINOMIAL"}{Total number of cases in whole area is fixed. It can 
+#'   be chosen in either Poisson or Binomial model.}
+#'   \item{"POISSON"}{Total number of cases is not fixed. It can be chosen in 
+#'   Poisson model.}
 #' }
 #' 
 #' @param ranseed
@@ -132,19 +148,26 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' legend("topright", legend = labs, col = rainbow(length(fls$cluster)), lty = 1)
 #' 
 #' @references
-#' \itemize{
-#'   \item Tango T. and Takahashi K. (2005). A flexibly shaped spatial scan statistic for detecting clusters, International Journal of Health Geographics 4:11.
-#'   \item Kulldorff M. and Nagarwalla N. (1995). Spatial disease clusters: Detection and Inference. Statistics in Medicine 14:799-810.
-#'   \item Kulldorff M. (1997). A spatial scan statistic. Communications in Statistics: Theory and Methods, 26:1481-1496.
-#'   \item Tango T. (2008). A spatial scan statistic with a restricted likelihood ratio. Japanese Journal of Biometrics 29(2):75-95.
+#'   Tango T. and Takahashi K. (2005). A flexibly shaped spatial scan 
+#'   statistic for detecting clusters, International Journal of Health 
+#'   Geographics 4:11.
+#'   
+#'   Kulldorff M. and Nagarwalla N. (1995). Spatial disease clusters: 
+#'   Detection and Inference. Statistics in Medicine 14:799-810.
+#'   
+#'   Kulldorff M. (1997). A spatial scan statistic. Communications in 
+#'   Statistics: Theory and Methods, 26:1481-1496.
+#'   
+#'   Tango T. (2008). A spatial scan statistic with a restricted 
+#'   likelihood ratio. Japanese Journal of Biometrics 29(2):75-95.
 #' }
 #' 
 #' @seealso \code{\link{summary.rflexscan}}, \code{\link{plot.rflexscan}}
 #' 
 #' @export
 #' 
-flexscan <- function(x, y, lat, lon, nb, name, observed, expected, population,
-                     data,
+flexscan <- function(x, y, lat, lon, nb,
+                     name, observed, expected, population, data,
                      clustersize=15,
                      radius=6370,
                      stattype=flexscan.stattype,
@@ -332,7 +355,9 @@ flexscan <- function(x, y, lat, lon, nb, name, observed, expected, population,
 }
 
 
-#' Summaries of flexscan
+#' Summarizing rflexscan results
+#' 
+#' Print and summary method functions for rflexscan objects.
 #' 
 #' @export
 #' 
@@ -394,8 +419,7 @@ print.summary.rflexscan <- function(x, ...) {
   
   cat("Census areas in cluster:\n")
   for (i in 1:x$n_cluster) {
-    cat("[", i, "] ", paste(x$name[x$areas[[i]]], collapse = " "), 
-        sep = "", fill = TRUE)
+    cat(sprintf("[%d]", i), x$name[x$areas[[i]]], sep = " ", fill = TRUE)
   }
   
   cat("\nLimit length of cluster:", x$clustersize, "\n")
@@ -412,6 +436,8 @@ print.summary.rflexscan <- function(x, ...) {
   
 
 #' Graph plotting of flexscan results
+#' 
+#' The \code{plot} method for flexscan objects.
 #' 
 #' @examples
 #' # highlight all clusters
