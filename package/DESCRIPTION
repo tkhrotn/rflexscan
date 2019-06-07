@@ -2,14 +2,13 @@ Package: rflexscan
 Type: Package
 Title: Tools and Methods to Analyze Spatial Count Data Using the Flexible
     Spatial Scan Statistic
-Version: 0.1
+Version: 1.0
 Date: 2019-04-15
 Author: Takahiro Otani,
     Kunihiko Takahashi
 Maintainer: Takahiro Otani <otani@med.nagoya-u.ac.jp>
-Description: The FleXScan (https://sites.google.com/site/flexscansoftware/home)
-    is a software to analyze spatial count data. The rflexscan package provides
-    functions for running FleXScan on R.
+Description: The rflexscan package provides functions to analyze spatial count
+    data using the flexible spatial scan statistic.
 License: GPL-3 + file LICENSE
 Depends: R (>= 3.1.0)
 Imports: Rcpp,
