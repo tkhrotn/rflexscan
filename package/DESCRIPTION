@@ -13,10 +13,14 @@ Description: The FleXScan (https://sites.google.com/site/flexscansoftware/home)
 License: GPL-3 + file LICENSE
 Depends: R (>= 3.1.0)
 Imports: Rcpp,
-    igraph
+    igraph,
+    rgdal,
+    grDevices,
+    sp
 LinkingTo: Rcpp
 Suggests: knitr,
-    rmarkdown
+    rmarkdown,
+    spdep
 VignetteBuilder: knitr
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
 Encoding: UTF-8

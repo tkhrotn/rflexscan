@@ -2,10 +2,15 @@
 % Please edit documentation in R/flexscan.R
 \name{print.summary.rflexscan}
 \alias{print.summary.rflexscan}
-\title{Print results of flexscan}
+\title{Print summary of flexscan results}
 \usage{
 \method{print}{summary.rflexscan}(x, ...)
 }
+\arguments{
+\item{x}{An summary.rflexscan object to be printed.}
+
+\item{...}{Ignored.}
+}
 \description{
-Print results of flexscan
+Print summary of flexscan results to the terminal.
 }

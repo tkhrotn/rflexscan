@@ -2,10 +2,15 @@
 % Please edit documentation in R/flexscan.R
 \name{summary.rflexscan}
 \alias{summary.rflexscan}
-\title{Summaries of flexscan}
+\title{Summarizing rflexscan results}
 \usage{
 \method{summary}{rflexscan}(object, ...)
 }
+\arguments{
+\item{object}{An rflexscan object to be summarized.}
+
+\item{...}{Ignored.}
+}
 \description{
-Summaries of flexscan
+Summary method for rflexscan objects.
 }

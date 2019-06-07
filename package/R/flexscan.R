@@ -30,50 +30,40 @@
 #' @importFrom Rcpp sourceCpp
 NULL
 
-#' @export
 flexscan.model <- c("POISSON", "BINOMIAL")
-
-#' @export
 flexscan.stattype <- c("ORIGINAL", "RESTRICTED")
-
-#' @export
 flexscan.scanmethod <- c("FLEXIBLE", "CIRCULAR")
-
-#' @export
 flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 
 
 #' Detect spatial disease clusters using the flexible/circular scan statistic
 #' 
-#' This function Analyzes spatial count data using the flexible spatial scan 
-#' statistic developed by Tango and Takahashi (2005) and Kulldorff‟s circular 
-#' spatial scan statistic (1997) and detect spatial disease clusters.
+#' This function analyzes spatial count data using the flexible spatial scan 
+#' statistic developed by Tango and Takahashi (2005) or Kulldorff's circular 
+#' spatial scan statistic (1997), and detect spatial disease clusters.
 #' 
 #' @param x
-#' An array of X-coordinates or a column name in \code{data}.
+#' An array of X-coordinates.
 #' 
 #' @param y
-#' An arrya of Y-coordinates or a column name in \code{data}.
+#' An array of Y-coordinates.
 #' 
 #' @param lat
-#' An array of latitude or a column name in \code{data}.
+#' An array of latitude.
 #' 
 #' @param lon
-#' An array of longitude or a column name in \code{data}.
+#' An array of longitude.
 #' 
 #' @param observed
-#' An array of observed number of diseases or a clumn name in \code{data}.
+#' An array of observed number of diseases.
 #' 
 #' @param expected
-#' An array of expected number of diseases under the null hypothesis or a clumn
-#' name in `data`. This is used on "Poisson" model.
+#' An array of expected number of diseases under the null hypothesis. 
+#' This is used on "Poisson" model.
 #' 
 #' @param population
-#' An array of background population at risk in each area or a clumn name in 
-#' `data`. This is used on "Binomial" model.
-#' 
-#' @param data
-#' A dataset containing coordinates, names for each area, and disease case data.
+#' An array of background population at risk in each area. 
+#' This is used on "Binomial" model.
 #' 
 #' @param nb
 #' A neighbours list or an adjacency matrix.
@@ -126,18 +116,27 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' @param comments
 #' Comments for the analysis which will be written in summary.
 #' 
+#' @param verbose
+#' Print progress messages.
+#' 
 #' @return 
 #' An \code{rflexscan} object which contains analysis results and specified
 #' parameters.
 #' 
 #' @examples
-#' # load sample data
-#' data("saitama_heart_m")
-#' data("saitama_coordinates")
-#' data("saitama_adj_mat")
+#' # load sample data (NorthCarlina SIDS data from spdep library)
+#' library(spdep)
+#' data("nc.sids")
 #' 
-#' # Run FleXScan with default parameters
-#' fls <- flexscan(saitama_heart_m, saitama_coordinates, saitama_adj_mat)
+#' # calculate the expected numbers of cases
+#' expected <- nc.sids$BIR74 * sum(nc.sids$SID74) / sum(nc.sids$BIR74)
+#' 
+#' # run FleXScan with default parameters
+#' fls <- flexscan(x = nc.sids$x, y = nc.sids$y,
+#'                 observed = nc.sids$SID74,
+#'                 expected = expected,
+#'                 name = rownames(nc.sids),
+#'                 nb = ncCR85.nb)
 #' 
 #' # Print summary to the terminal
 #' summary(fls)
@@ -160,21 +159,20 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #'   
 #'   Tango T. (2008). A spatial scan statistic with a restricted 
 #'   likelihood ratio. Japanese Journal of Biometrics 29(2):75-95.
-#' }
 #' 
-#' @seealso \code{\link{summary.rflexscan}}, \code{\link{plot.rflexscan}}
+#' @seealso \link{summary.rflexscan}, \link{graph}, \link{choropleth}
 #' 
 #' @export
 #' 
-flexscan <- function(x, y, lat, lon, nb,
-                     name, observed, expected, population, data,
+flexscan <- function(x, y, lat, lon, 
+                     name, observed, expected, population, nb,
                      clustersize=15,
                      radius=6370,
-                     stattype=flexscan.stattype,
-                     scanmethod=flexscan.scanmethod,
+                     stattype="ORIGINAL",
+                     scanmethod="FLEXIBLE",
                      ralpha=0.2,
                      simcount=999,
-                     rantype=flexscan.rantype,
+                     rantype="MULTINOMIAL",
                      ranseed=4586111,
                      comments="",
                      verbose=FALSE) {
@@ -183,51 +181,27 @@ flexscan <- function(x, y, lat, lon, nb,
   stattype <- match.arg(toupper(stattype), flexscan.stattype)
   scanmethod <- match.arg(toupper(scanmethod), flexscan.scanmethod)
   rantype <- match.arg(toupper(rantype), flexscan.rantype)
+  
+  name <- sub(" ", "_", name)
 
-  if (missing(data)) {
-    if (!missing(lat) && !missing(lon)) {
-      coordinates <- cbind(lat, lon)
-      latlon <- TRUE
-    } else {
-      coordinates <- cbind(x, y)
-      latlon <- FALSE
-    }
-    
-    if (!missing(expected)) {
-      case <- cbind(observed, expected)
-      model <- "POISSON"
-    } else {
-      case <- cbind(observed, population)
-      model <- "BINOMIAL"
-    }
-    
-    row.names(coordinates) <- as.character(name)
-    row.names(case) <- as.character(name)
+  if (!missing(lat) && !missing(lon)) {
+    coordinates <- cbind(lat, lon)
+    latlon <- TRUE
   } else {
-    if (!is.data.frame(data)) {
-      data <- data.frame(data)
-    }
-    
-    if (!missing(lat) && !missing(lon)) {
-      coordinates <- cbind(data[,lat], data[,lon])
-      latlon <- TRUE
-    } else {
-      coordinates <- cbind(data[,x], data[,y])
-      latlon <- FALSE
-    }
-    
-    if (!missing(expected)) {
-      case <- cbind(data[,observed], data[,expected])
-      model <- "POISSON"
-    } else {
-      case <- cbind(data[,observed], data[,population])
-      model <- "BINOMIAL"
-    }
-    
-    row.names(coordinates) <- as.character(data[,name])
-    row.names(case) <- as.character(data[,name])
-    name <- as.character(data[,name])
-  } 
+    coordinates <- cbind(x, y)
+    latlon <- FALSE
+  }
+  
+  if (!missing(expected)) {
+    case <- cbind(observed, expected)
+    model <- "POISSON"
+  } else {
+    case <- cbind(observed, population)
+    model <- "BINOMIAL"
+  }
+  
+  row.names(coordinates) <- as.character(name)
+  row.names(case) <- as.character(name)
   
   if (is.matrix(nb)) {
     adj_mat <- nb
@@ -357,8 +331,15 @@ flexscan <- function(x, y, lat, lon, nb,
 
 #' Summarizing rflexscan results
 #' 
-#' Print and summary method functions for rflexscan objects.
+#' Summary method for rflexscan objects.
 #' 
+#' @param object
+#' An rflexscan object to be summarized.
+#' 
+#' @param ...
+#' Ignored.
+#' 
+#' @method summary rflexscan
 #' @export
 #' 
 summary.rflexscan <- function(object, ...) {
@@ -400,7 +381,15 @@ summary.rflexscan <- function(object, ...) {
 
 
 
-#' Print results of flexscan
+#' Print summary of flexscan results
+#' 
+#' Print summary of flexscan results to the terminal.
+#' 
+#' @param x
+#' An summary.rflexscan object to be printed.
+#' 
+#' @param ...
+#' Ignored.
 #' 
 #' @export
 #' 
@@ -417,12 +406,7 @@ print.summary.rflexscan <- function(x, ...) {
   print(table, quote = FALSE, right = TRUE, print.gap = 2)
   cat("---\nSignif. codes: ", attr(signif, "legend"), "\n\n")
   
-  cat("Census areas in cluster:\n")
-  for (i in 1:x$n_cluster) {
-    cat(sprintf("[%d]", i), x$name[x$areas[[i]]], sep = " ", fill = TRUE)
-  }
-  
-  cat("\nLimit length of cluster:", x$clustersize, "\n")
+  cat("Limit length of cluster:", x$clustersize, "\n")
   cat("Number of census areas:", x$total_areas, "\n")
   cat("Total cases:", x$total_cases, "\n")
   if (x$latlon) {
@@ -430,40 +414,78 @@ print.summary.rflexscan <- function(x, ...) {
   } else {
     cat("Coordinates: Cartesian\n")
   }
-  cat("Scanning Method:", x$scanmethod, "\n")
-  cat("Model:", x$model, "\n\n")
+  cat("Model:", x$model, "\n")
+  cat("Scanning method:", x$scanmethod, "\n")
+  cat("Statistic type:", x$stattype, "\n\n")
 }
   
 
 #' Graph plotting of flexscan results
 #' 
-#' The \code{plot} method for flexscan objects.
+#' Display detected clusters by a graph representation.
+#' 
+#' @param x
+#' An rflexscan object.
+#' 
+#' @param rank
+#' An integer vector which specifies ranks of clusters to be displayed.
+#' 
+#' @param pval
+#' A threshold of P-value. Clusters with P-values of <\code{pval} will be displayed.
+#' 
+#' @param vertexsize
+#' Size of vertex of the graph.
+#' 
+#' @param xlab
+#' A label of the x axis.
+#' 
+#' @param ylab
+#' A label of the y axis.
+#' 
+#' @param xlim
+#' The x limits of the plot.
+#' 
+#' @param ylim
+#' The y limits of the plot.
+#' 
+#' @param ...
+#' Other parameters to be passed to \link{plot.igraph} function.
+#' 
+#' @details 
+#' Clusters are colored using the current palette. Please use \link{palette}
+#' function to specify colors of each cluster. Note that clusters with ranks
+#' larger than the number of colors in the palette are not highlighted.
 #' 
 #' @examples
-#' # highlight all clusters
-#' plot(flexscan.output)
+#' \dontrun{
+#' # display all clusters
+#' plot(rflexscan_object)
 #' 
-#' # highlight clusters with rank 1 and 2
-#' plot(flexscan.output, rank = c(1,2))
+#' # display clusters with rank 1 and 2
+#' plot(rflexscan_object, rank = c(1,2))
 #' 
-#' # highlight clusters of P-value <= 0.05
-#' plot(flexscan.output, pval = 0.05)
+#' # display clusters of P-value <= 0.05
+#' plot(rflexscan_object, pval = 0.05)
+#' }
 #' 
-#' @import igraph
+#' @importFrom igraph graph_from_adjacency_matrix V V<- E E<- plot.igraph
+#' @importFrom grDevices rainbow
 #' 
+#' @method plot rflexscan
 #' @export
 #' 
-plot.rflexscan <- function(object,
-                           col=rainbow(length(object$cluster)),
-                           rank=1:length(object$cluster),
-                           pval=1,
-                           vertexsize=max(object$coordinates[,1])-min(object$coordinates[,1]),
-                           xlab=colnames(object$coordinates)[1],
-                           ylab=colnames(object$coordinates)[2],
-                           xlim=c(min(object$coordinates[,1]), max(object$coordinates[,1])),
-                           ylim=c(min(object$coordinates[,2]), max(object$coordinates[,2])),
-                           ...) {
-  g <- graph_from_adjacency_matrix(object$adj_mat, mode = "undirected", diag = FALSE, weighted = TRUE)
+plot.rflexscan <- function(x,
+                  rank=1:length(x$cluster),
+                  pval=1,
+                  vertexsize=max(x$coordinates[,1])-min(x$coordinates[,1]),
+                  xlab=colnames(x$coordinates)[1],
+                  ylab=colnames(x$coordinates)[2],
+                  xlim=c(min(x$coordinates[,1]), max(x$coordinates[,1])),
+                  ylim=c(min(x$coordinates[,2]), max(x$coordinates[,2])),
+                   ...) {
+  col <- palette()
+  
+  g <- graph_from_adjacency_matrix(x$adj_mat, mode = "undirected", diag = FALSE, weighted = TRUE)
   V(g)$size <- vertexsize
   V(g)$frame.color <- "gray40"
   V(g)$color <- "white"
@@ -471,17 +493,70 @@ plot.rflexscan <- function(object,
   E(g)$color <- "gray40"
   
   # color clusters
-  for (i in 1:length(object$cluster)) {
-    if (i %in% rank & object$cluster[[i]]$pval <= pval) {
-      V(g)$color[object$cluster[[i]]$area] <- col[i]
+  for (i in 1:min(length(col), length(x$cluster))) {
+    if (i %in% rank & x$cluster[[i]]$pval <= pval) {
+      V(g)$color[x$cluster[[i]]$area] <- col[i]
       E(g)$color[E(g)$weight == 10 * i] <- col[i]
     }
   }
   
-  if (!object$latlon) {
-    plot(g, axes = TRUE, layout = as.matrix(object$coordinates[,c(1,2)]), rescale = FALSE, xlab = xlab, ylab = ylab, xlim = xlim, ylim = ylim, ...)
+  if (!x$latlon) {
+    plot(g, axes = TRUE, layout = as.matrix(x$coordinates[,c(1,2)]), rescale = FALSE, xlab = xlab, ylab = ylab, xlim = xlim, ylim = ylim, ...)
   } else {
     # flip X-Y (x:longitude, y:latitude)
-    plot(g, axes = TRUE, layout = as.matrix(object$coordinates[,c(2,1)]), rescale = FALSE, xlab = ylab, ylab = xlab, xlim = ylim, ylim = xlim, ...)
+    plot(g, axes = TRUE, layout = as.matrix(x$coordinates[,c(2,1)]), rescale = FALSE, xlab = ylab, ylab = xlab, xlim = ylim, ylim = xlim, ...)
   }
+}
+
+
+#' Display choropleth map
+#' 
+#' Display choropleth map of detected clusters.
+#' 
+#' @param polygons
+#' A SpatialPolygonsDataFrame.
+#' 
+#' @param fls
+#' An rflexscan object.
+#' 
+#' @param region_color
+#' Color of regions that are not included in any clusters. 
+#' 
+#' @param rank
+#' An integer vector which specifies ranks of clusters to be displayed.
+#' 
+#' @param pval
+#' A threshold of P-value. Clusters with P-values of <\code{pval} will be displayed.
+#' 
+#' @param ...
+#' Other parameters to be passed to plot function.
+#' 
+#' @details 
+#' Clusters are colored using the current palette. Please use \link{palette}
+#' function to specify colors of each cluster. Note that clusters with ranks
+#' larger than the number of colors in the palette are not highlighted.
+#'
+#' @import sp grDevices graphics stats utils
+#' 
+#' @export
+#' 
+choropleth <- function(polygons,
+                       fls,
+                       region_color="#F0F0F0",
+                       rank=1:length(fls$cluster),
+                       pval=1,
+                       ...) {
+  col <- palette()
+  
+  # color clusters
+  for (i in 1:length(col)) {
+    if (!(i %in% rank & fls$cluster[[i]]$pval <= pval)) {
+      col[i] <- region_color
+    }
+  }
+  col <- c(col, region_color)
+  index <- fls$clusterrank
+  index[index == 0 | index > length(col)] <- length(col)
+  plot(polygons, col = col[index], lwd = 0.1, ...)
+  box()
 }

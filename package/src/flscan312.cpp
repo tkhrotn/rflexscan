@@ -1482,7 +1482,7 @@ mZ = popul[center];
     fprintf(fp9, "  Monte Carlo rank ......: %d/%d\n", (rnk = j), SIMCOUNT + 1);
     fprintf(fp9, "  P-value ...............: %lg\n", (double)j / (double)(SIMCOUNT + 1));
     //***added by suzuryo,2011.9.28
-    fprintf(fp13, "***%lg\現在地n", (double)j / (double)(SIMCOUNT + 1));
+    fprintf(fp13, "***%lg\n", (double)j / (double)(SIMCOUNT + 1));
     //***end
     if (rnk == SIMCOUNT + 1) {
       Rprintf("*** There are no more secondary clusters ***\n");
@@ -2100,7 +2100,7 @@ int     flexcore(int argc, char *argv[]) {
     return(-1);
   
   Rprintf("\n--  CALCULATING  --\n");
-  Rprintf("<ctrl-C> to terminate\n");
+  //Rprintf("<ctrl-C> to terminate\n");
   if ((fp9 = fopen(filename9, "wt")) == NULL)
     return(ErrFile9);
   if ((fp11 = fopen(CLSTGEO, "wt")) == NULL)
