@@ -14,3 +14,6 @@
 \description{
 Print summary of flexscan results to the terminal.
 }
+\seealso{
+\link{flexscan}, \link{summary.rflexscan}
+}

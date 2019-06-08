@@ -50,3 +50,6 @@ plot(rflexscan_object, pval = 0.05)
 }
 
 }
+\seealso{
+\link{flexscan}
+}

@@ -117,5 +117,5 @@ Tango T. and Takahashi K. (2005). A flexibly shaped spatial scan
   likelihood ratio. Japanese Journal of Biometrics 29(2):75-95.
 }
 \seealso{
-\link{summary.rflexscan}, \link{graph}, \link{choropleth}
+\link{summary.rflexscan}, \link{plot.rflexscan}, \link{choropleth}
 }

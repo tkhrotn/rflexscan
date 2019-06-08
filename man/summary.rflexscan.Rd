@@ -14,3 +14,6 @@
 \description{
 Summary method for rflexscan objects.
 }
+\seealso{
+\link{flexscan}
+}

@@ -393,7 +393,7 @@ summary.rflexscan <- function(object, ...) {
 #' @param ...
 #' Ignored.
 #' 
-#' @seealso \link{flexscan}, \link{summary.flexscan}
+#' @seealso \link{flexscan}, \link{summary.rflexscan}
 #' 
 #' @export
 #' 
