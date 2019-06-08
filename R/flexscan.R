@@ -160,7 +160,7 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #'   Tango T. (2008). A spatial scan statistic with a restricted 
 #'   likelihood ratio. Japanese Journal of Biometrics 29(2):75-95.
 #' 
-#' @seealso \link{summary.rflexscan}, \link{graph}, \link{choropleth}
+#' @seealso \link{summary.rflexscan}, \link{plot.rflexscan}, \link{choropleth}
 #' 
 #' @export
 #' 
@@ -339,6 +339,8 @@ flexscan <- function(x, y, lat, lon,
 #' @param ...
 #' Ignored.
 #' 
+#' @seealso \link{flexscan}
+#' 
 #' @method summary rflexscan
 #' @export
 #' 
@@ -390,6 +392,8 @@ summary.rflexscan <- function(object, ...) {
 #' 
 #' @param ...
 #' Ignored.
+#' 
+#' @seealso \link{flexscan}, \link{summary.flexscan}
 #' 
 #' @export
 #' 
@@ -455,6 +459,8 @@ print.summary.rflexscan <- function(x, ...) {
 #' Clusters are colored using the current palette. Please use \link{palette}
 #' function to specify colors of each cluster. Note that clusters with ranks
 #' larger than the number of colors in the palette are not highlighted.
+#' 
+#' @seealso \link{flexscan}
 #' 
 #' @examples
 #' \dontrun{
