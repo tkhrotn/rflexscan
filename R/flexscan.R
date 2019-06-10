@@ -322,7 +322,7 @@ flexscan <- function(x, y, lat, lon,
                  radius=radius, model=model, stattype=stattype,
                  scanmethod=scanmethod, ralpha=ralpha, latlon=latlon,
                  simcount=simcount, rantype=rantype, ranseed=ranseed,
-                 comments=comments, summary=result, adj_mat=adj_mat)
+                 comments=comments, log=result, adj_mat=adj_mat)
   class(retval) <- "rflexscan"
 
   return(retval)
