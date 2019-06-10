@@ -1,3 +1,6 @@
+#include <Rcpp.h>
+using namespace Rcpp;
+
 #include "com.h"
 #include "ranlib.h"
 #include <stdio.h>
@@ -30,8 +33,7 @@ static long qrgnin;
 */
     gsrgs(0L,&qrgnin);
     if(qrgnin) goto S10;
-    fputs(" ADVNST called before random generator initialized - ABORT",stderr);
-    exit(1);
+    Rcpp::stop(" ADVNST called before random generator initialized - ABORT");
 S10:
     gscgn(0L,&g);
     ib1 = Xa1;
@@ -74,9 +76,7 @@ static long qrgnin;
 */
     gsrgs(0L,&qrgnin);
     if(qrgnin) goto S10;
-    fprintf(stderr,"%s\n",
-      " GETSD called before random number generator  initialized -- abort!");
-    exit(0);
+    Rcpp::stop(" GETSD called before random number generator  initialized -- abort!");
 S10:
     gscgn(0L,&g);
     *iseed1 = *(Xcg1+g-1);
@@ -169,9 +169,7 @@ static long qrgnin;
 */
     gsrgs(0L,&qrgnin);
     if(qrgnin) goto S10;
-    fprintf(stderr,"%s\n",
-      " INITGN called before random number generator  initialized -- abort!");
-    exit(1);
+    Rcpp::stop(" INITGN called before random number generator  initialized -- abort!");
 S10:
     gscgn(0L,&g);
     if(-1 != isdtyp) goto S20;
@@ -190,8 +188,7 @@ S30:
     *(Xlg2+g-1) = mltmod(Xa2w,*(Xlg2+g-1),Xm2);
     goto S50;
 S40:
-    fprintf(stderr,"%s\n","isdtyp not in range in INITGN");
-    exit(1);
+    Rcpp::stop("isdtyp not in range in INITGN");
 S50:
     *(Xcg1+g-1) = *(Xlg1+g-1);
     *(Xcg2+g-1) = *(Xlg2+g-1);
@@ -323,9 +320,7 @@ static long qrgnin;
 */
     gsrgs(0L,&qrgnin);
     if(qrgnin) goto S10;
-    fprintf(stderr,"%s\n",
-      " SETANT called before random number generator  initialized -- abort!");
-    exit(1);
+    Rcpp::stop(" SETANT called before random number generator  initialized -- abort!");
 S10:
     gscgn(0L,&g);
     Xqanti[g-1] = qvalue;
@@ -360,9 +355,7 @@ static long qrgnin;
 */
     gsrgs(0L,&qrgnin);
     if(qrgnin) goto S10;
-    fprintf(stderr,"%s\n",
-      " SETSD called before random number generator  initialized -- abort!");
-    exit(1);
+    Rcpp::stop(" SETSD called before random number generator  initialized -- abort!");
 S10:
     gscgn(0L,&g);
     *(Xig1+g-1) = iseed1;

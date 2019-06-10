@@ -388,15 +388,15 @@ void genmul(long n,double *p,long ncat,long *ix)
 {
 static float prob,ptot,sum;
 static long i,icat,ntot;
-    if(n < 0) ftnstop("N < 0 in GENMUL");
-    if(ncat <= 1) ftnstop("NCAT <= 1 in GENMUL");
+    if(n < 0) ftnstop((char*)("N < 0 in GENMUL"));
+    if(ncat <= 1) ftnstop((char*)("NCAT <= 1 in GENMUL"));
     ptot = 0.0F;
     for(i=0; i<ncat-1; i++) {
-        if(*(p+i) < 0.0F) ftnstop("Some P(i) < 0 in GENMUL");
-        if(*(p+i) > 1.0F) ftnstop("Some P(i) > 1 in GENMUL");
+        if(*(p+i) < 0.0F) ftnstop((char*)("Some P(i) < 0 in GENMUL"));
+        if(*(p+i) > 1.0F) ftnstop((char*)("Some P(i) > 1 in GENMUL"));
         ptot += *(p+i);
     }
-    if(ptot > 0.99999F) ftnstop("Sum of P(i) > 1 in GENMUL");
+    if(ptot > 0.99999F) ftnstop((char*)("Sum of P(i) > 1 in GENMUL"));
 /*
      Initialize variables
 */
@@ -920,9 +920,9 @@ static float y,a,r;
 /*
      Check Arguments
 */
-    if(n < 0) ftnstop("N < 0 in IGNNBN");
-    if(p <= 0.0F) ftnstop("P <= 0 in IGNNBN");
-    if(p >= 1.0F) ftnstop("P >= 1 in IGNNBN");
+    if(n < 0) ftnstop((char*)"N < 0 in IGNNBN");
+    if(p <= 0.0F) ftnstop((char*)"P <= 0 in IGNNBN");
+    if(p >= 1.0F) ftnstop((char*)"P >= 1 in IGNNBN");
 /*
      Generate Y, a random gamma (n,(1-p)/p) variable
 */

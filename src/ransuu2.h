@@ -50,7 +50,7 @@
 #define UPPER_MASK 0x80000000UL /* most significant w-r bits */
 #define LOWER_MASK 0x7fffffffUL /* least significant r bits */
 
-	#define PI 3.141592654  /* personal option */
+//	#define PI 3.141592654  /* personal option */
 
 static unsigned long mt[MTN]; /* the array for the state vector  */
 static int mti=MTN+1; /* mti==MTN+1 means mt[MTN] is not initialized */
@@ -280,7 +280,7 @@ int multirand(int k, double p0[])
 
 int multirand2(int k, double p0[])
 {
-	int i,x;
+	int i,x=0;
 	double xx, x1;
 	
 	xx=genrand_real1();

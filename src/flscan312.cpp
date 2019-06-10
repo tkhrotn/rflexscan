@@ -249,7 +249,7 @@ void	ScanNearestNeighbours(int center) {
   for (i = 0; i < K; ++i)
     w[i] = area_sorted[i]->index;
   if (w[0] != center)
-    exit(ErrNearest);
+    Rcpp::stop("ERROR! Code:", ErrNearest);
 }
 /*---------------------------------------------------------------------------------*/
 /* some functions for Restriction */
@@ -1316,11 +1316,11 @@ mZ = popul[center];
   
   if (phase == 0 && LAMBDAFILE != NULL) {
     if ((fp13 = fopen(NODEFILE, "wt")) == NULL)
-      exit(ErrFile13);
+      Rcpp::stop("ERROR! Code:", ErrFile13);
     if ((fp10 = fopen(LAMBDAFILE, "wt")) == NULL)
-      exit(ErrFile10);
+      Rcpp::stop("ERROR! Code:", ErrFile10);
     if ((fp14 = fopen(RFILE, "wt")) == NULL)
-      exit(ErrFile14);
+      Rcpp::stop("ERROR! Code:", ErrFile14);
     fprintf(fp10, "%d\n", SIMCOUNT + 1);
     for (i = 0; i <= SIMCOUNT; ++i)
       fprintf(fp10, "%.22lg\n", maxstat[i]);
@@ -1458,31 +1458,31 @@ mZ = popul[center];
     maxdist = MaxDistance(&(lkc.z[0]), lkc.z_length, &maxdistz1, &maxdistz2);
     
     if (CARTESIAN == 0)
-      fprintf(fp9, "  Maximum distance.......: %lg km (areas: %s to %s)\n",
+      fprintf(fp9, "  Maximum distance.......: %g km (areas: %s to %s)\n",
               maxdist, area[maxdistz1].id, area[maxdistz2].id
       );
     else if (CARTESIAN == 1)
-      fprintf(fp9, "  Maximum distance.......: %lg    (areas: %s to %s)\n",
+      fprintf(fp9, "  Maximum distance.......: %g    (areas: %s to %s)\n",
               maxdist, area[maxdistz1].id, area[maxdistz2].id
       );
     
     fprintf(fp9, "  Number of cases .......: %d\n", lkc.nZ);
     if (MODEL == 0) {
-      fprintf(fp9, "  (Expected number of cases: %lg)\n", (double)lkc.mZ);
-      fprintf(fp9, "  Overall relative risk .: %lg\n", ((double)lkc.nZ / (double)lkc.mZ) / ((double)nG[0] / (double)mG));
+      fprintf(fp9, "  (Expected number of cases: %g)\n", (double)lkc.mZ);
+      fprintf(fp9, "  Overall relative risk .: %g\n", ((double)lkc.nZ / (double)lkc.mZ) / ((double)nG[0] / (double)mG));
     } else if (MODEL == 1) {
       fprintf(fp9, "  Population ............: %d\n", (int)lkc.mZ);
     }
-    fprintf(fp9, "  Statistic value .......: %lg\n", lkc.lambda);
+    fprintf(fp9, "  Statistic value .......: %g\n", lkc.lambda);
     
     for (j = 1; j <= SIMCOUNT; ++j)
       if (lkc.lambda > maxstat[j])
         break;
       
     fprintf(fp9, "  Monte Carlo rank ......: %d/%d\n", (rnk = j), SIMCOUNT + 1);
-    fprintf(fp9, "  P-value ...............: %lg\n", (double)j / (double)(SIMCOUNT + 1));
+    fprintf(fp9, "  P-value ...............: %g\n", (double)j / (double)(SIMCOUNT + 1));
     //***added by suzuryo,2011.9.28
-    fprintf(fp13, "***%lg\n", (double)j / (double)(SIMCOUNT + 1));
+    fprintf(fp13, "***%g\n", (double)j / (double)(SIMCOUNT + 1));
     //***end
     if (rnk == SIMCOUNT + 1) {
       Rprintf("*** There are no more secondary clusters ***\n");
@@ -1506,12 +1506,12 @@ mZ = popul[center];
     }
     
     if (MODEL == 0) {
-      fprintf(fp14, "%lg %s %s %d %lg %lg %lg %d %lg",
+      fprintf(fp14, "%g %s %s %d %g %g %g %d %g",
               maxdist, area[maxdistz1].id, area[maxdistz2].id,
               lkc.nZ, (double)lkc.mZ, ((double)lkc.nZ / (double)lkc.mZ) / ((double)nG[0] / (double)mG),
               lkc.lambda, rnk, (double)j / (double)(SIMCOUNT + 1));
     } else {
-      fprintf(fp14, "%lg %s %s %d %d %lg %d %lg",
+      fprintf(fp14, "%g %s %s %d %d %g %d %g",
               maxdist, area[maxdistz1].id, area[maxdistz2].id,
               lkc.nZ, (int)lkc.mZ,
               lkc.lambda, rnk, (double)j / (double)(SIMCOUNT + 1));
@@ -1533,8 +1533,8 @@ mZ = popul[center];
   if (NOMORE == 1) {
     fprintf(fp9, "--------------------------------------------------------\n");
     fprintf(fp9, "The statistic value required for an observed\ncluster to be significant at level\n");
-    fprintf(fp9, "... 0.01: %lg\n", maxstat[(int)(0.01*(SIMCOUNT+1))]);
-    fprintf(fp9, "... 0.05: %lg\n", maxstat[(int)(0.05*(SIMCOUNT+1))]);
+    fprintf(fp9, "... 0.01: %g\n", maxstat[(int)(0.01*(SIMCOUNT+1))]);
+    fprintf(fp9, "... 0.05: %g\n", maxstat[(int)(0.05*(SIMCOUNT+1))]);
     fprintf(fp9, "\n");
     fprintf(fp9, "--------------------------------------------------------\n");
     fprintf(fp9, "\n");
@@ -1562,7 +1562,7 @@ mZ = popul[center];
     fprintf(fp9, "  Scan for Area with   : High Rates\n");
     fprintf(fp9, "  Coordinates          : %s\n", (CARTESIAN == 0) ? "Latitude/Longitude" : "Cartesian");
     if (CARTESIAN == 0)
-      fprintf(fp9, "  Radius of Earth      : %lg km\n", R_EARTH);
+      fprintf(fp9, "  Radius of Earth      : %g km\n", R_EARTH);
     fprintf(fp9, "\n");
     fprintf(fp9, "  Number of Replications : %d\n", SIMCOUNT);
     fprintf(fp9, "  Type of Random number  : %s\n", (RANTYPE == 0) ? "Multinomial" : ((MODEL == 1) ? "Binomial" : "Poisson"));
@@ -1602,7 +1602,7 @@ int     LoadData() {
   /* N=number of areas */
   if ((fp1 = fopen(filename1, "rt")) == NULL) {
     Rprintf("ErrFile %s.", filename1);
-    exit(ErrFile1);
+    Rcpp::stop("ERROR! Code:", ErrFile1);
   };
   
   
@@ -1612,17 +1612,17 @@ int     LoadData() {
     
     if ((area = (TArea *)calloc(N, sizeof(TArea))) == NULL) {
       Rprintf("ErrMemory - area");
-      exit(ErrMemory);
+      Rcpp::stop("ERROR! Code:", ErrMemory);
     };
     
     if ((area_sorted = (TArea **)calloc(N, sizeof(TArea *))) == NULL) {
       Rprintf("ErrMemory - area_sorted");
-      exit(ErrMemory);
+      Rcpp::stop("ERROR! Code:", ErrMemory);
     };
     
     if ((detectedarea = (int *)calloc(N, sizeof(int))) == NULL) {
       Rprintf("ErrMemory - detectedarea");
-      exit(ErrMemory);
+      Rcpp::stop("ERROR! Code:", ErrMemory);
     };
     for (i = 0; i < N; ++i)
       detectedarea[i] = 0;
@@ -1630,12 +1630,12 @@ int     LoadData() {
     /* Read coordinates */
     if ((fp3 = fopen(filename3, "rt")) == NULL) {
       Rprintf("ErrFile %s.", filename3);
-      exit(ErrFile3);
+      Rcpp::stop("ERROR! Code:", ErrFile3);
     };
     for (i = 0; i < N; ++i) {
       if (fgets(buf, 256, fp3) == NULL) {
         Rprintf("Read Error - %s", filename3);
-        exit(ErrFile3);
+        Rcpp::stop("ERROR! Code:", ErrFile3);
       };
       
       if (sscanf(buf, "%s", buf2) != 1) {
@@ -1647,7 +1647,7 @@ int     LoadData() {
       
       if (sscanf(buf, "%s %lf %lf", ids, &(area[i].l), &(area[i].m)) != 3) {
         Rprintf("Read Error -- %s", filename3);
-        exit(ErrFile3);
+        Rcpp::stop("ERROR! Code:", ErrFile3);
       };
       area[i].id = strdup(ids);
     };
@@ -1660,7 +1660,7 @@ int     LoadData() {
     rewind(fp1);
     for (i = 0; i < N; ++i) {
       if (fgets(buf, 256, fp1) == NULL)
-        exit(ErrFile1);
+        Rcpp::stop("ERROR! Code:", ErrFile1);
       
       if (sscanf(buf, "%s", buf2) != 1) {
         i--;
@@ -1671,11 +1671,11 @@ int     LoadData() {
       
       if (sscanf(buf, "%s %d %lf", ids, &(area[i].cases), &(area[i].popul)) != 3) {
         Rprintf("Read Error -- case file");
-        exit(ErrFile1);
+        Rcpp::stop("ERROR! Code:", ErrFile1);
       };
       if (strcmp(ids, area[i].id) != 0) {
         Rprintf("ErrFile1ID");
-        exit(ErrFile1ID);
+        Rcpp::stop("ERROR! Code:", ErrFile1ID);
       };
     };
     fclose(fp1);
@@ -1683,28 +1683,28 @@ int     LoadData() {
     /* Allocate and read connection matrix a[0..N-1][0..N-1] */
     if ((fp4 = fopen(filename4, "rt")) == NULL) {
       Rprintf("ErrMemory -- fp4");
-      exit(ErrFile4);
+      Rcpp::stop("ERROR! Code:", ErrFile4);
     };
     if ((a = (int **)calloc(N, sizeof(int *))) == NULL) {
       Rprintf("ErrMemory -- a");
-      exit(ErrMemory);
+      Rcpp::stop("ERROR! Code:", ErrMemory);
     };
     for (i = 0; i < N; ++i) {
       if ((a[i] = (int *)calloc(N, sizeof(int))) == NULL) {
         Rprintf("ErrMemory -- a[i]");
-        exit(ErrMemory);
+        Rcpp::stop("ERROR! Code:", ErrMemory);
       };
       if (fscanf(fp4, "%s", ids) != 1) {
         Rprintf("ErrFile4");
-        exit(ErrFile4);
+        Rcpp::stop("ERROR! Code:", ErrFile4);
       };
       if (strcmp(ids, area[i].id) != 0) {
         Rprintf("ErrFile4ID");
-        exit(ErrFile4ID);
+        Rcpp::stop("ERROR! Code:", ErrFile4ID);
       };
       for (j = 0; j < N; ++j) {
         if (fscanf(fp4, "%d", &c) != 1)
-          exit(ErrFile4);
+          Rcpp::stop("ERROR! Code:", ErrFile4);
         a[i][j] = c;
       };
     };
@@ -1713,30 +1713,30 @@ int     LoadData() {
     for (i = 0; i < N; ++i)
       for (j = 0; j < N; ++j)
         if (a[i][j] != a[j][i])
-          exit(ErrFile4);
+          Rcpp::stop("ERROR! Code:", ErrFile4);
         fclose(fp4);
         
         if ((calen = (int *)calloc(N, sizeof(int))) == NULL) {
           Rprintf("ErrMemory -- calen");
-          exit(ErrMemory);
+          Rcpp::stop("ERROR! Code:", ErrMemory);
         };
         if ((ca = (areaidx **)calloc(N, sizeof(areaidx *))) == NULL) {
           Rprintf("ErrMemory -- ca");
-          exit(ErrMemory);
+          Rcpp::stop("ERROR! Code:", ErrMemory);
         };
         for (i = 0; i < N; ++i) {
           if ((ca[i] = (areaidx *)calloc(N, sizeof(areaidx))) == NULL) {
             Rprintf("ErrMemory -- ca[i]");
-            exit(ErrMemory);
+            Rcpp::stop("ERROR! Code:", ErrMemory);
           }
         }
         if ((caz = (areaidx *)calloc(N * K, sizeof(areaidx))) == NULL) {
           Rprintf("ErrMemory -- caz");
-          exit(ErrMemory);
+          Rcpp::stop("ERROR! Code:", ErrMemory);
         };
         if ((masksw = (short *)calloc(N, sizeof(short))) == NULL) {
           Rprintf("ErrMemory -- masksw");
-          exit(ErrMemory);
+          Rcpp::stop("ERROR! Code:", ErrMemory);
         };
         for (i = 0; i < N; ++i) {
           calen[i] = 0;
@@ -1750,43 +1750,43 @@ int     LoadData() {
         /* popul[0..N-1] */
         if ((popul = (double *)calloc(N, sizeof(double))) == NULL) {
           Rprintf("ErrMemory - popul");
-          exit(ErrMemory);
+          Rcpp::stop("ERROR! Code:", ErrMemory);
         };
         /* cases[0..N-1][0..SIMCOUNT] */
         if ((cases = (int **)calloc(N, sizeof(int *))) == NULL) {
           Rprintf("ErrMemory - cases");
-          exit(ErrMemory);
+          Rcpp::stop("ERROR! Code:", ErrMemory);
         };
         for (i = 0; i < N; ++i)
           if ((cases[i] = (int *)calloc(SIMCOUNT + 1, sizeof(int))) == NULL) {
             Rprintf("ErrMemory -- cases");
-            exit(ErrMemory);
+            Rcpp::stop("ERROR! Code:", ErrMemory);
           }
           /* pp[0..N-1] */
           if ((pp = (double *)calloc(N, sizeof(double))) == NULL) {
             Rprintf("ErrMemory - pp");
-            exit(ErrMemory);
+            Rcpp::stop("ERROR! Code:", ErrMemory);
           };
           if ((rtmp = (long *)calloc(N, sizeof(long))) == NULL) {
             Rprintf("ErrMemory - rtemp");
-            exit(ErrMemory);
+            Rcpp::stop("ERROR! Code:", ErrMemory);
           };
           
           /* pv0[i][s] */
           if ((pv0 = (double **)calloc(N, sizeof(double *))) == NULL) {
             Rprintf("ErrMemory - pv0");
-            exit(ErrMemory);
+            Rcpp::stop("ERROR! Code:", ErrMemory);
           };
           for (i = 0; i < N; ++i)
             if ((pv0[i] = (double *)calloc(SIMCOUNT + 1, sizeof(double))) == NULL) {
               Rprintf("ErrMemory -- pv0");
-              exit(ErrMemory);
+              Rcpp::stop("ERROR! Code:", ErrMemory);
             };
             
             /* nG[0..SIMCOUNT] */
             if ((nG = (int *)calloc(SIMCOUNT + 1, sizeof(int))) == NULL) {
               Rprintf("ErrMemory - nG");
-              exit(ErrMemory);
+              Rcpp::stop("ERROR! Code:", ErrMemory);
             };
             
             /* Calculate total population and cases */
@@ -1798,7 +1798,7 @@ int     LoadData() {
                 Rprintf("- %s is excluded.\n", area[i].id);
                 detectedarea[i] = -1;
                 ++misarea;
-                //				exit(ErrData);
+                //				Rcpp::stop("ERROR! Code:", ErrData);
               } else
                 mG_temp += (area[i].popul);
             };
@@ -1897,7 +1897,7 @@ int     LoadData() {
               /* maxstat[0..SIMCOUNT] */
               if ((maxstat = (double *)calloc(SIMCOUNT + 1, sizeof(double))) == NULL) {
                 Rprintf("ErrMemory - maxstat");
-                exit(ErrMemory);
+                Rcpp::stop("ERROR! Code:", ErrMemory);
               };
               
               if (MODEL == 0) {
@@ -1910,41 +1910,41 @@ int     LoadData() {
                   /* minmZ_zlength[nGmax] */
                   if ((minmZ_zlength = (int *)calloc(nGmax + 1, sizeof(int))) == NULL) {
                     Rprintf("ErrMemory - minmZ_zlength");
-                    exit(ErrMemory);
+                    Rcpp::stop("ERROR! Code:", ErrMemory);
                   };
                   
                   /* minmZ_z[0..nGmax][K-1] */
                   if ((minmZ_z = (areaidx **)calloc(nGmax + 1, sizeof(areaidx *))) == NULL) {
                     Rprintf("ErrMemory -- minmZ_z");
-                    exit(ErrMemory);
+                    Rcpp::stop("ERROR! Code:", ErrMemory);
                   };
                   for (i = 0; i <= nGmax; ++i)
                     if ((minmZ_z[i] = (areaidx *)calloc(K, sizeof(areaidx))) == NULL) {
                       Rprintf("ErrMemory -- minmZ_z[i]");
-                      exit(ErrMemory);
+                      Rcpp::stop("ERROR! Code:", ErrMemory);
                     };
                     
                     /* *minmZ[0..SIMCOUNT] */
                     if ((minmZ = (double **)calloc(SIMCOUNT + 1, sizeof(double *))) == NULL) {
                       Rprintf("ErrMemory -- minmZ");
-                      exit(ErrMemory);
+                      Rcpp::stop("ERROR! Code:", ErrMemory);
                     };
                     /* minmZ[0..SIMCOUNT][0..snG] */
                     for (i = 0; i <= SIMCOUNT; ++i) {
                       if ((minmZ[i] = (double *)calloc(nGmax + 1, sizeof(double))) == NULL) {
                         Rprintf("ErrMemory -- minmZ[i]");
-                        exit(ErrMemory);
+                        Rcpp::stop("ERROR! Code:", ErrMemory);
                       };
                     };
                 } else {
                   if ((MLC_z = (areaidx *)calloc(K, sizeof(areaidx))) == NULL) {
                     Rprintf("ErrMemory - MLC_z");
-                    exit(ErrMemory);
+                    Rcpp::stop("ERROR! Code:", ErrMemory);
                   };
                   
                   if ((Lpoi0 = (double *)calloc(SIMCOUNT + 1, sizeof(double))) == NULL) {
                     Rprintf("ErrMemory - Lbin0");
-                    exit(ErrMemory);
+                    Rcpp::stop("ERROR! Code:", ErrMemory);
                   };
                   
                   for (j = 0; j <= SIMCOUNT; ++j)
@@ -1954,13 +1954,13 @@ int     LoadData() {
                 /* MLC_z[K-1] */
                 if ((MLC_z = (areaidx *)calloc(K, sizeof(areaidx))) == NULL) {
                   Rprintf("ErrMemory - MLC_z");
-                  exit(ErrMemory);
+                  Rcpp::stop("ERROR! Code:", ErrMemory);
                 };
                 
                 /* for Binomila Model */
                 if ((Lbin0 = (double *)calloc(SIMCOUNT + 1, sizeof(double))) == NULL) {
                   Rprintf("ErrMemory - Lbin0");
-                  exit(ErrMemory);
+                  Rcpp::stop("ERROR! Code:", ErrMemory);
                 };
                 
                 for (j = 0; j <= SIMCOUNT; ++j)
@@ -2018,7 +2018,7 @@ int     flexcore(int argc, char *argv[]) {
         SIMCOUNT = atoi(&buf[9]);
         if (SIMCOUNT >= SIMLIM) {
           Rprintf("SIMCOUNT is too large!");
-          exit(ErrMemory);
+          Rcpp::stop("ERROR! Code:", ErrMemory);
         }
       } else if (strncasecmp(buf, "RANSEED=", 8) == 0)
         DEFSEED = atoi(&buf[8]);
@@ -2090,7 +2090,7 @@ int     flexcore(int argc, char *argv[]) {
   Rprintf(" Random number = %s.\n", (RANTYPE == 0) ? "Multinomial" : ((MODEL == 0) ? "Poisson" : "Binomial"));
   Rprintf(" Coordinates = %s.\n", (CARTESIAN == 0) ? "Latitude/Longitude" : "Cartesian");
   if (CARTESIAN == 0)
-    Rprintf(" Radius of Earth = %lg km.\n", R_EARTH);
+    Rprintf(" Radius of Earth = %g km.\n", R_EARTH);
   
   Rprintf("\nInitializing...\n");
   

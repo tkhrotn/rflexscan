@@ -1,14 +1,15 @@
 Package: rflexscan
 Type: Package
-Title: Tools and Methods to Analyze Spatial Count Data Using the Flexible
+Title: Functions to Analyze Spatial Count Data Using the Flexible
     Spatial Scan Statistic
-Version: 1.0
-Date: 2019-04-15
+Version: 0.1
+Date: 2019-06-10
 Author: Takahiro Otani,
     Kunihiko Takahashi
 Maintainer: Takahiro Otani <otani@med.nagoya-u.ac.jp>
-Description: The rflexscan package provides functions to analyze spatial count
-    data using the flexible spatial scan statistic.
+Description: The rflexscan package provides functions to detect spatial disease
+    clusters using the flexible scan statistic.
+URL: https://tkhrotn.github.io/rflexscan/
 License: GPL-3 + file LICENSE
 Depends: R (>= 3.1.0)
 Imports: Rcpp,

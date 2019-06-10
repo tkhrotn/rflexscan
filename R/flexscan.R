@@ -124,7 +124,7 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' parameters.
 #' 
 #' @examples
-#' # load sample data (NorthCarlina SIDS data from spdep library)
+#' # load sample data (North Carlina SIDS data from spdep package)
 #' library(spdep)
 #' data("nc.sids")
 #' 
