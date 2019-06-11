@@ -9,7 +9,7 @@ using namespace Rcpp;
 /* #pragma inline */
 
 #include <stdlib.h>
-#include <stdio.h>
+//#include <stdio.h>
 #include <math.h>
 #include <time.h>
 #include <memory.h>

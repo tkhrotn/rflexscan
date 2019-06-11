@@ -26,7 +26,7 @@
 #' 
 "_PACKAGE"
 
-#' @useDynLib rflexscan, .registration=TRUE
+#' @useDynLib rflexscan
 #' @importFrom Rcpp sourceCpp
 NULL
 
@@ -131,11 +131,12 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' # calculate the expected numbers of cases
 #' expected <- nc.sids$BIR74 * sum(nc.sids$SID74) / sum(nc.sids$BIR74)
 #' 
-#' # run FleXScan with default parameters
+#' # run FleXScan
 #' fls <- flexscan(x = nc.sids$x, y = nc.sids$y,
 #'                 observed = nc.sids$SID74,
 #'                 expected = expected,
 #'                 name = rownames(nc.sids),
+#'                 clustersize = 10,
 #'                 nb = ncCR85.nb)
 #' 
 #' # Print summary to the terminal
@@ -144,7 +145,7 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' # Plot graph
 #' plot(fls)
 #' labs <- 1:length(fls$cluster)
-#' legend("topright", legend = labs, col = rainbow(length(fls$cluster)), lty = 1)
+#' legend("topright", legend = labs, col = palette()[labs], lty = 1)
 #' 
 #' @references
 #'   Tango T. and Takahashi K. (2005). A flexibly shaped spatial scan 

@@ -2,7 +2,7 @@
 using namespace Rcpp;
 
 #include "ranlib.h"
-#include <stdio.h>
+//#include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
 #define ABS(x) ((x) >= 0 ? (x) : -(x))

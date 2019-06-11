@@ -3,7 +3,7 @@ using namespace Rcpp;
 
 #include "com.h"
 #include "ranlib.h"
-#include <stdio.h>
+//#include <stdio.h>
 #include <stdlib.h>
 void advnst(long k)
 /*

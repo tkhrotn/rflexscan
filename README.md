@@ -5,12 +5,12 @@ Project page: <https://tkhrotn.github.io/rflexscan/>
 
 ## Install
 ```r
+# Install from CRAN
+install.packages("rflexscan")
+
 # Install development version from GitHub:
 install.packages("devtools")
 devtools::install_github("tkhrotn/rflexscan")
-
-# Install from CRAN (in preparation!)
-# install.packages("rflexscan")
 ```
 
 ## References
