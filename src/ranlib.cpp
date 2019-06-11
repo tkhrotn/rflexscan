@@ -1,3 +1,6 @@
+#include <Rcpp.h>
+using namespace Rcpp;
+
 #include "ranlib.h"
 #include <stdio.h>
 #include <math.h>
@@ -42,9 +45,7 @@ static long qsame;
     qsame = olda == aa && oldb == bb;
     if(qsame) goto S20;
     if(!(aa <= 0.0 || bb <= 0.0)) goto S10;
-    fputs(" AA or BB <= 0 in GENBET - Abort!",stderr);
-    fprintf(stderr," AA: %16.6E BB %16.6E\n",aa,bb);
-    exit(1);
+    Rcpp::stop("AA or BB <= 0 in GENBET - Abort! AA: %16.6E BB %16.6E", aa, bb);
 S10:
     olda = aa;
     oldb = bb;
@@ -193,9 +194,7 @@ float genchi(float df)
 static float genchi;
 
     if(!(df <= 0.0)) goto S10;
-    fputs("DF <= 0 in GENCHI - ABORT",stderr);
-    fprintf(stderr,"Value of DF: %16.6E\n",df);
-    exit(1);
+    Rcpp::stop("DF <= 0 in GENCHI - ABORT Value of DF: %16.6E", df);
 S10:
     genchi = 2.0*gengam(1.0,df/2.0);
     return genchi;
@@ -249,9 +248,7 @@ float genf(float dfn,float dfd)
 static float genf,xden,xnum;
 
     if(!(dfn <= 0.0 || dfd <= 0.0)) goto S10;
-    fputs("Degrees of freedom nonpositive in GENF - abort!",stderr);
-    fprintf(stderr,"DFN value: %16.6EDFD value: %16.6E\n",dfn,dfd);
-    exit(1);
+    Rcpp::stop("Degrees of freedom nonpositive in GENF - abort!\nDFN value: %16.6EDFD value: %16.6E", dfn, dfd);
 S10:
     xnum = genchi(dfn)/dfn;
 /*
@@ -259,9 +256,10 @@ S10:
 */
     xden = genchi(dfd)/dfd;
     if(!(xden <= 9.999999999998E-39*xnum)) goto S20;
-    fputs(" GENF - generated numbers would cause overflow",stderr);
-    fprintf(stderr," Numerator %16.6E Denominator %16.6E\n",xnum,xden);
-    fputs(" GENF returning 1.0E38",stderr);
+    REprintf(" GENF - generated numbers would cause overflow\n");
+    REprintf(" Numerator %16.6E Denominator %16.6E\n",xnum,xden);
+    REprintf(" GENF returning 1.0E38\n");
+    
     genf = 1.0E38;
     goto S30;
 S20:
@@ -443,9 +441,7 @@ float gennch(float df,float xnonc)
 static float gennch;
 
     if(!(df <= 1.0 || xnonc < 0.0)) goto S10;
-    fputs("DF <= 1 or XNONC < 0 in GENNCH - ABORT",stderr);
-    fprintf(stderr,"Value of DF: %16.6E Value of XNONC%16.6E\n",df,xnonc);
-    exit(1);
+    Rcpp::stop("DF <= 1 or XNONC < 0 in GENNCH - ABORT\nValue of DF: %16.6E Value of XNONC%16.6E", df, xnonc);
 S10:
     gennch = genchi(df-1.0)+pow(gennor(sqrt(xnonc),1.0),2.0);
     return gennch;
@@ -478,13 +474,7 @@ static long qcond;
 
     qcond = dfn <= 1.0 || dfd <= 0.0 || xnonc < 0.0;
     if(!qcond) goto S10;
-    fputs("In GENNF - Either (1) Numerator DF <= 1.0 or",stderr);
-    fputs("(2) Denominator DF < 0.0 or ",stderr);
-    fputs("(3) Noncentrality parameter < 0.0",stderr);
-    fprintf(stderr,
-      "DFN value: %16.6EDFD value: %16.6EXNONC value: \n%16.6E\n",dfn,dfd,
-      xnonc);
-    exit(1);
+    Rcpp::stop("In GENNF - Either (1) Numerator DF <= 1.0 or\n(2) Denominator DF < 0.0 or\n(3) Noncentrality parameter < 0.0\nDFN value: %16.6EDFD value: %16.6EXNONC value: \n%16.6E", dfn,dfd,xnonc);
 S10:
     xnum = gennch(dfn,xnonc)/dfn;
 /*
@@ -492,9 +482,9 @@ S10:
 */
     xden = genchi(dfd)/dfd;
     if(!(xden <= 9.999999999998E-39*xnum)) goto S20;
-    fputs(" GENNF - generated numbers would cause overflow",stderr);
-    fprintf(stderr," Numerator %16.6E Denominator %16.6E\n",xnum,xden);
-    fputs(" GENNF returning 1.0E38",stderr);
+    REprintf(" GENNF - generated numbers would cause overflow\n");
+    REprintf(" Numerator %16.6E Denominator %16.6E\n",xnum,xden);
+    REprintf(" GENNF returning 1.0E38\n");
     gennf = 1.0E38;
     goto S30;
 S20:
@@ -566,9 +556,7 @@ float genunf(float low,float high)
 static float genunf;
 
     if(!(low > high)) goto S10;
-    fprintf(stderr,"LOW > HIGH in GENUNF: LOW %16.6E HIGH: %16.6E\n",low,high);
-    fputs("Abort",stderr);
-    exit(1);
+    Rcpp::stop("LOW > HIGH in GENUNF: LOW %16.6E HIGH: %16.6E\nAbort", low, high);
 S10:
     genunf = low+(high-low)*ranf();
     return genunf;
@@ -591,8 +579,7 @@ static long curntg = 1;
     if(getset == 0) *g = curntg;
     else  {
         if(*g < 0 || *g > numg) {
-            fputs(" Generator number out of range in GSCGN",stderr);
-            exit(0);
+            Rcpp::stop(" Generator number out of range in GSCGN");
         }
         curntg = *g;
     }
@@ -1196,14 +1183,12 @@ long ignuin(long low,long high)
 static long ignuin,ign,maxnow,range,ranp1;
 
     if(!(low > high)) goto S10;
-    fputs(" low > high in ignuin - ABORT",stderr);
-    exit(1);
+    Rcpp::stop(" low > high in ignuin - ABORT");
 
 S10:
     range = high-low;
     if(!(range > maxnum)) goto S20;
-    fputs(" high - low too large in ignuin - ABORT",stderr);
-    exit(1);
+    Rcpp::stop(" high - low too large in ignuin - ABORT");
 
 S20:
     if(!(low == high)) goto S30;
@@ -1263,10 +1248,7 @@ static long mltmod,a0,a1,k,p,q,qh,rh;
       machine. On a different machine recompute H
 */
     if(!(a <= 0 || a >= m || s <= 0 || s >= m)) goto S10;
-    fputs(" a, m, s out of order in mltmod - ABORT!",stderr);
-    fprintf(stderr," a = %12ld s = %12ld m = %12ld\n",a,s,m);
-    fputs(" mltmod requires: 0 < a < m; 0 < s < m",stderr);
-    exit(1);
+    Rcpp::stop(" a, m, s out of order in mltmod - ABORT!\n a = %12ld s = %12ld m = %12ld\n mltmod requires: 0 < a < m; 0 < s < m", a, s, m);
 S10:
     if(!(a < h)) goto S20;
     a0 = a;
@@ -1899,6 +1881,6 @@ Prints msg to standard error and then exits
 void ftnstop(char* msg)
 /* msg - error message */
 {
-  if (msg != NULL) fprintf(stderr,"%s\n",msg);
-  exit(0);
+  if (msg != NULL) Rcpp::warning(msg);
+  Rcpp::stop(0);
 }

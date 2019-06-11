@@ -2,3 +2,7 @@
 ^\.Rproj\.user$
 ^_config.yml
 ^index.md
+^src/.*\.fsrc$
+^src/.*\.o$
+^src/.*\.so$
+^src/.*\.dll$

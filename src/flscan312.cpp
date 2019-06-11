@@ -192,7 +192,7 @@ int sort_func1(const void *a, const void *b) {
 }
 /*---------------------------------------------------------------------------------*/
 double  distance(double ma, double la, double mb, double lb) {
-  double  xa, ya, za, xb, yb, zb, d, dd, tab;
+  double  xa, ya, za, xb, yb, zb, d, tab;
   
   if (CARTESIAN == 0) {
     if (ma == mb && la == lb)
@@ -236,7 +236,7 @@ double  MaxDistance(areaidx *z, int zlen, areaidx *z1, areaidx *z2) {
 }
 /*---------------------------------------------------------------------------------*/
 void	ScanNearestNeighbours(int center) {
-  int     i, s, icenter;
+  int     i;
   double  m1, l1;
   
   m1 = area[center].m;
@@ -484,7 +484,7 @@ void FlexibleScan0s(int zlen) {
 }
 /*---------------------------------------------------------------------------------*/
 void	CircularScan0s(int zlen) {
-  int     i, j, r;
+  int     i, r;
   int     s;
   int     *cases_r;
   double  mZbak;
@@ -596,7 +596,7 @@ void FlexibleScan1s(int zlen, int ss) {
 }
 /*---------------------------------------------------------------------------------*/
 void	CircularScan1s(int zlen, int ss) {
-  int     i, j, r;
+  int     i, r;
   int     s;
   double  mZbak;
   
@@ -727,7 +727,7 @@ void FlexibleScan0l(int zlen) {
 
 /*---------------------------------------------------------------------------------*/
 void	CircularScan0l(int zlen) {
-  int     i, j, r;
+  int     i, r;
   int     s;
   int		*cases_r;
   double  mZbak;
@@ -848,7 +848,7 @@ void FlexibleScan1l(int zlen, int ss) {
 }
 
 void	CircularScan1l(int zlen, int ss) {
-  int     i, j, r;
+  int     i, r;
   int     s;
   double  mZbak;
   double	st0;
@@ -992,7 +992,7 @@ void FlexibleScanB0(int zlen) {
 
 /*---------------------------------------------------------------------------------*/
 void	CircularScanB0(int zlen) {
-  int     i, j, r;
+  int     i, r;
   int     s;
   int		*cases_r;
   double  mZbak;
@@ -1113,7 +1113,7 @@ void FlexibleScanB1(int zlen, int ss) {
 }
 
 void	CircularScanB1(int zlen, int ss) {
-  int     i, j, r;
+  int     i, r;
   int     s;
   double  mZbak;
   double	st0;
@@ -1161,7 +1161,7 @@ void	CircularScanB1(int zlen, int ss) {
 /*---------------------------------------------------------------------------------*/
 void	FlexScan() {
   int     i, j, center, s, ind_k;
-  TLikelyCluster *lc;
+  //TLikelyCluster *lc;
   double  maxdist;
   areaidx maxdistz1, maxdistz2;
   double	l1, l2, m1, m2;
@@ -1584,7 +1584,7 @@ mZ = popul[center];
     //				fprintf(fp9,"Working Memory Size : %d bytes\n",simworksize);
     time(&tm2);
     fprintf(fp9, "Program completed  : %s", ctime(&tm2));
-    fprintf(fp9, "Total Running Time : %d seconds\n", tm2 - tm1);
+    fprintf(fp9, "Total Running Time : %d seconds\n", (int)(tm2 - tm1));
     return;
   };
 };
@@ -1592,10 +1592,9 @@ mZ = popul[center];
 
 int     LoadData() {
   int     i, j, c;
-  int     dum1, dum2;
   char    buf[256], ids[128];
   char	buf2[256];
-  int		k, blank;
+  int		k;
   double	mG_temp;
   float	ppbin;
   
@@ -1803,11 +1802,12 @@ int     LoadData() {
                 mG_temp += (area[i].popul);
             };
             
-            if (MODEL == 0)
+            if (MODEL == 0) {
               if (abs((double)nG[0] - mG_temp) < 0.001)
                 EXTYPE = 0;
-              else
+            } else {
                 EXTYPE = 1;
+            }
               
               if (MODEL == 1) { /* Binomial model */
             for (i = 0; i < N; ++i)
@@ -1986,7 +1986,7 @@ char    *ffgets(char *buf, int len, FILE *fp) {
 /* -----------------------------------------------------------------*/
 int     flexcore(int argc, char *argv[]) {
   char    buf[256];
-  int     j, i, s;
+  int     i, s;
   int		SIM2;
   double	totp;
   
