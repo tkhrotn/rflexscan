@@ -16,9 +16,9 @@ using namespace Rcpp;
 #include <string.h>
 //#pragma hdrstop
 
-#include "com.h"
-#include "ransuu2.h"
-#include "ranlib.h"
+//#include "com.h"
+//#include "ransuu2.h"
+//#include "ranlib.h"
 
 #define ErrMemory (1)
 #define ErrFile0 (2)
@@ -1823,45 +1823,47 @@ int     LoadData() {
               
               Rprintf("\nsimulation data generating...");
               
-              ignlgi();
-              advnst(DEFSEED);
+              //ignlgi();
+              //advnst(DEFSEED);
               
               nGmax = nG[0];
               
-              if (MODEL == 1) { /* Binomila model */
-              if (RANTYPE == 0) { /* Multinomial */
-              for (i = 0; i < N; ++i) {
-                if (popul[i] > 0.0)
-                  pp[i] = (double)popul[i] / (double)mG;
-                else
-                  pp[i] = 0.0;
-              };
-                
-                for (j = 1; j <= SIMCOUNT; ++j) {
-                  k = 0;
-                  genmul(nG[0], pp, N, rtmp);
+              if (MODEL == 1) { /* Binomial model */
+                if (RANTYPE == 0) { /* Multinomial */
                   for (i = 0; i < N; ++i) {
-                    if (rtmp[i] > popul[i]) {
-                      ++k;
-                      cases[i][j] = popul[i];
-                    } else
-                      cases[i][j] = rtmp[i];
-                  }
-                  nG[j] = nG[0] - k;
-                };
-              } else {	/* Binomial */
-              ppbin = nG[0] / (double)mG;
-                
-                for (j = 1; j <= SIMCOUNT; ++j) {
-                  nG[j] = 0;
-                  for (i = 0; i < N; ++i) {
-                    cases[i][j] = ignbin((long)popul[i], ppbin);
-                    nG[j] += cases[i][j];
+                    if (popul[i] > 0.0)
+                      pp[i] = (double)popul[i] / (double)mG;
+                    else
+                      pp[i] = 0.0;
                   };
-                  if (nG[j] > nGmax)
-                    nGmax = nG[j];
-                };
-              }
+                  
+                  for (j = 1; j <= SIMCOUNT; ++j) {
+                    k = 0;
+                    //genmul(nG[0], pp, N, rtmp);
+                    rmultinom(nG[0], pp, N, (int*)rtmp);
+                    for (i = 0; i < N; ++i) {
+                      if (rtmp[i] > popul[i]) {
+                        ++k;
+                        cases[i][j] = popul[i];
+                      } else
+                        cases[i][j] = rtmp[i];
+                    }
+                    nG[j] = nG[0] - k;
+                  };
+                } else {	/* Binomial */
+                ppbin = nG[0] / (double)mG;
+                  
+                  for (j = 1; j <= SIMCOUNT; ++j) {
+                    nG[j] = 0;
+                    for (i = 0; i < N; ++i) {
+                      //cases[i][j] = ignbin((long)popul[i], ppbin);
+                      cases[i][j] = R::rbinom((double)popul[i], (double)ppbin);
+                      nG[j] += cases[i][j];
+                    };
+                    if (nG[j] > nGmax)
+                      nGmax = nG[j];
+                  };
+                }
               } else {	/* Poisson model */
               if (RANTYPE == 0) { /* Multinomial */
               for (i = 0; i < N; ++i) {
@@ -1872,7 +1874,8 @@ int     LoadData() {
               };
                 
                 for (j = 1; j <= SIMCOUNT; ++j) {
-                  genmul(nG[0], pp, N, rtmp);
+                  //genmul(nG[0], pp, N, rtmp);
+                  rmultinom(nG[0], pp, N, (int*)rtmp);
                   for (i = 0; i < N; ++i)
                     cases[i][j] = rtmp[i];
                   nG[j] = nG[0];
@@ -1882,7 +1885,7 @@ int     LoadData() {
                 nG[j] = 0;
                 for (i = 0; i < N; ++i) {
                   if (popul[i] > 0.0)
-                    cases[i][j] = ignpoi((float)popul[i]);
+                    cases[i][j] = R::rpois(popul[i]); //cases[i][j] = ignpoi((float)popul[i]);
                   else
                     cases[i][j] = 0.0;
                   nG[j] += cases[i][j];
