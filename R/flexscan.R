@@ -110,9 +110,6 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #'   Poisson model.}
 #' }
 #' 
-#' @param ranseed
-#' The seed for generating random numbers in the Monte Carlo simulation.
-#' 
 #' @param comments
 #' Comments for the analysis which will be written in summary.
 #' 
@@ -174,7 +171,6 @@ flexscan <- function(x, y, lat, lon,
                      ralpha=0.2,
                      simcount=999,
                      rantype="MULTINOMIAL",
-                     ranseed=4586111,
                      comments="",
                      verbose=FALSE) {
   call <- match.call()
@@ -258,7 +254,7 @@ flexscan <- function(x, y, lat, lon,
   cat("CARTESIAN=", as.integer(!latlon), "\n", sep = "", file =settingfile, append = TRUE)
   cat("SIMCOUNT=", simcount, "\n", sep = "", file =settingfile, append = TRUE)
   cat("RANTYPE=", rantype, "\n", sep = "", file =settingfile, append = TRUE)
-  cat("RANSEED=", ranseed, "\n", sep = "", file =settingfile, append = TRUE)
+  cat("RANSEED=", 0, "\n", sep = "", file =settingfile, append = TRUE)  # ignored
   cat("COMMENT=", comments, "\n", sep = "", file =settingfile, append = TRUE)
   
   if (!verbose)
@@ -322,7 +318,7 @@ flexscan <- function(x, y, lat, lon,
                  cluster=clst, clusterrank=clusterrank, clustersize=clustersize, 
                  radius=radius, model=model, stattype=stattype,
                  scanmethod=scanmethod, ralpha=ralpha, latlon=latlon,
-                 simcount=simcount, rantype=rantype, ranseed=ranseed,
+                 simcount=simcount, rantype=rantype,
                  comments=comments, log=result, adj_mat=adj_mat)
   class(retval) <- "rflexscan"
 

@@ -118,7 +118,7 @@ int     **cases;        /* no. of cases for Monte Carlo simulations */
 double  *popul;         /* copy of area[].popul */
 int     *detectedarea;  /* flags to detect exclusive clusters */
 double  *pp;			/* pp[i] is a probability for multinomial, i=0..N-1 */
-long	*rtmp;
+int	*rtmp;
 
 double  *maxstat;		/* test statistic */
 
@@ -1323,7 +1323,7 @@ mZ = popul[center];
       Rcpp::stop("ERROR! Code:", ErrFile14);
     fprintf(fp10, "%d\n", SIMCOUNT + 1);
     for (i = 0; i <= SIMCOUNT; ++i)
-      fprintf(fp10, "%.22lg\n", maxstat[i]);
+      fprintf(fp10, "%.22g\n", maxstat[i]);
     l1 = l2 = area[0].l;
     m1 = m2 = area[0].m;
     for (i = 1; i < N; ++i) {
@@ -1332,7 +1332,7 @@ mZ = popul[center];
       if (area[i].l > l2) l2 = area[i].l;
       if (area[i].m > m2) m2 = area[i].m;
     };
-    fprintf(fp10, "%.22lg %.22lg %.22lg %.22lg\n", l1, m1, l2, m2);
+    fprintf(fp10, "%.22g %.22g %.22g %.22g\n", l1, m1, l2, m2);
     for (i = 0; i < N; ++i) {
       for (j = i + 1; j < N; ++j)
         if (a[i][j]) {
@@ -1345,7 +1345,7 @@ mZ = popul[center];
           //***end
           
           //***Modified by suzuryo, 2011/9/22.
-          fprintf(fp10,"%d %.22lg %.22lg %.22lg %.22lg\n",
+          fprintf(fp10,"%d %.22g %.22g %.22g %.22g\n",
                   (detectedarea[i]==1 && detectedarea[j]==1) ? 1 : 0,
                   area[i].l, area[i].m,
                   area[j].l, area[j].m
@@ -1359,7 +1359,7 @@ mZ = popul[center];
     };
     fprintf(fp10, "-\n");
     for (i = 0; i < N; ++i)
-      fprintf(fp10, "%d %s %d %.22lg %.22lg\n", i, area[i].id, detectedarea[i], area[i].l, area[i].m);
+      fprintf(fp10, "%d %s %d %.22g %.22g\n", i, area[i].id, detectedarea[i], area[i].l, area[i].m);
     fclose(fp10);
   };
   
@@ -1409,9 +1409,10 @@ mZ = popul[center];
     fprintf(fp9, "Total cases ...........: %d\n", nG[0]);
     if (MODEL == 1)
       fprintf(fp9, "Total population ......: %d\n", (int)mG);
-    if (MODEL == 0)
+    if (MODEL == 0) {
       if (EXTYPE == 1)
         fprintf(fp9,  " (expected number is adjusted by Total cases as *Total expects* = *Total cases*)\n");
+    }
       fprintf(fp9, "\n");
       fprintf(fp9, "--------------------------------------------------------\n");
       fprintf(fp9, "\n");
@@ -1605,9 +1606,10 @@ int     LoadData() {
   };
   
   
-  for (N = 0; fgets(buf, 256, fp1) != NULL; ++N)
+  for (N = 0; fgets(buf, 256, fp1) != NULL; ++N) {
     if (sscanf(buf, "%s", buf2) != 1)
       N--;
+  }
     
     if ((area = (TArea *)calloc(N, sizeof(TArea))) == NULL) {
       Rprintf("ErrMemory - area");
@@ -1709,10 +1711,12 @@ int     LoadData() {
     };
     
     /* check symmetry */
-    for (i = 0; i < N; ++i)
-      for (j = 0; j < N; ++j)
+    for (i = 0; i < N; ++i) {
+      for (j = 0; j < N; ++j) {
         if (a[i][j] != a[j][i])
           Rcpp::stop("ERROR! Code:", ErrFile4);
+      }
+    }
         fclose(fp4);
         
         if ((calen = (int *)calloc(N, sizeof(int))) == NULL) {
@@ -1756,17 +1760,18 @@ int     LoadData() {
           Rprintf("ErrMemory - cases");
           Rcpp::stop("ERROR! Code:", ErrMemory);
         };
-        for (i = 0; i < N; ++i)
+        for (i = 0; i < N; ++i) {
           if ((cases[i] = (int *)calloc(SIMCOUNT + 1, sizeof(int))) == NULL) {
             Rprintf("ErrMemory -- cases");
             Rcpp::stop("ERROR! Code:", ErrMemory);
           }
+        }
           /* pp[0..N-1] */
           if ((pp = (double *)calloc(N, sizeof(double))) == NULL) {
             Rprintf("ErrMemory - pp");
             Rcpp::stop("ERROR! Code:", ErrMemory);
           };
-          if ((rtmp = (long *)calloc(N, sizeof(long))) == NULL) {
+          if ((rtmp = (int *)calloc(N, sizeof(int))) == NULL) {
             Rprintf("ErrMemory - rtemp");
             Rcpp::stop("ERROR! Code:", ErrMemory);
           };
@@ -1840,7 +1845,7 @@ int     LoadData() {
                   for (j = 1; j <= SIMCOUNT; ++j) {
                     k = 0;
                     //genmul(nG[0], pp, N, rtmp);
-                    rmultinom(nG[0], pp, N, (int*)rtmp);
+                    rmultinom(nG[0], pp, N, rtmp);
                     for (i = 0; i < N; ++i) {
                       if (rtmp[i] > popul[i]) {
                         ++k;
@@ -1875,7 +1880,7 @@ int     LoadData() {
                 
                 for (j = 1; j <= SIMCOUNT; ++j) {
                   //genmul(nG[0], pp, N, rtmp);
-                  rmultinom(nG[0], pp, N, (int*)rtmp);
+                  rmultinom(nG[0], pp, N, rtmp);
                   for (i = 0; i < N; ++i)
                     cases[i][j] = rtmp[i];
                   nG[j] = nG[0];
@@ -2013,7 +2018,7 @@ int     flexcore(int argc, char *argv[]) {
         filename4 = strdup(&buf[7]);
       else if (strncasecmp(buf, "RESULTS=", 8) == 0) {
         filename9 = strdup(&buf[8]);
-        strncat(&buf[8], ".clt", 4);
+        strcat(&buf[8], ".clt");
         CLSTGEO = strdup(&buf[8]);
       } else if (strncasecmp(buf, "LAMBDAFILE=", 11) == 0)
         LAMBDAFILE = strdup(&buf[11]);

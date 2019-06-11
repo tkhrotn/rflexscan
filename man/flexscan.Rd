@@ -7,8 +7,7 @@
 flexscan(x, y, lat, lon, name, observed, expected, population, nb,
   clustersize = 15, radius = 6370, stattype = "ORIGINAL",
   scanmethod = "FLEXIBLE", ralpha = 0.2, simcount = 999,
-  rantype = "MULTINOMIAL", ranseed = 4586111, comments = "",
-  verbose = FALSE)
+  rantype = "MULTINOMIAL", comments = "", verbose = FALSE)
 }
 \arguments{
 \item{x}{An array of X-coordinates.}
@@ -62,8 +61,6 @@ test.}
   \item{"POISSON"}{Total number of cases is not fixed. It can be chosen in 
   Poisson model.}
 }}
-
-\item{ranseed}{The seed for generating random numbers in the Monte Carlo simulation.}
 
 \item{comments}{Comments for the analysis which will be written in summary.}
 
