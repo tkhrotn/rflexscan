@@ -1,14 +1,13 @@
 Package: rflexscan
 Type: Package
-Title: rflexscan: The Flexible Spatial Scan Statistic on R
+Title: The Flexible Spatial Scan Statistic
 Version: 0.1
 Date: 2019-06-12
 Author: Takahiro Otani,
     Kunihiko Takahashi
 Maintainer: Takahiro Otani <otani@med.nagoya-u.ac.jp>
-Description: This package provides functions and classes for analysing spatial
-    count data using the flexible spatial scan statistic developed by Tango and
-    Takahashi (2005).
+Description: Functions for the detection of spatial clusters using the flexible
+    spatial scan statistic developed by Tango and Takahashi (2005) <doi:10.1186/1476-072X-4-11>.
 URL: https://tkhrotn.github.io/rflexscan/
 License: GPL-3
 Depends: R (>= 3.1.0)
