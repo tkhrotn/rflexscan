@@ -38,16 +38,29 @@ function to specify colors of each cluster. Note that clusters with ranks
 larger than the number of colors in the palette are not highlighted.
 }
 \examples{
-\dontrun{
-# display all clusters
-plot(rflexscan_object)
+# load sample data (North Carolina SIDS data)
+library(spdep)
+data("nc.sids")
 
-# display clusters with rank 1 and 2
-plot(rflexscan_object, rank = c(1,2))
+# calculate the expected numbers of cases
+expected <- nc.sids$BIR74 * sum(nc.sids$SID74) / sum(nc.sids$BIR74)
+
+# run FleXScan
+fls <- flexscan(x = nc.sids$x, y = nc.sids$y,
+                observed = nc.sids$SID74,
+                expected = expected,
+                name = rownames(nc.sids),
+                clustersize = 10,
+                nb = ncCR85.nb)
+
+# display all clusters
+plot(fls)
+
+# display clusters with rank 1, 2 and 3
+plot(fls, rank = c(1, 2, 3))
 
 # display clusters of P-value <= 0.05
-plot(rflexscan_object, pval = 0.05)
-}
+plot(fls, pval = 0.05)
 
 }
 \seealso{

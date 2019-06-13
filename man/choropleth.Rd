@@ -28,3 +28,36 @@ Clusters are colored using the current palette. Please use \link{palette}
 function to specify colors of each cluster. Note that clusters with ranks
 larger than the number of colors in the palette are not highlighted.
 }
+\examples{
+\donttest{
+# load sample data (North Carolina SIDS data)
+library(rgdal)
+library(spdep)
+data("nc.sids")
+sids.shp <- readOGR(system.file("shapes/sids.shp", package="spData")[1])
+
+# calculate the expected numbers of cases
+expected <- nc.sids$BIR74 * sum(nc.sids$SID74) / sum(nc.sids$BIR74)
+
+# run FleXScan
+fls <- flexscan(x = nc.sids$x, y = nc.sids$y,
+                observed = nc.sids$SID74,
+                expected = expected,
+                name = rownames(nc.sids),
+                clustersize = 10,
+                nb = ncCR85.nb)
+
+# display all clusters
+choropleth(sids.shp, fls)
+
+# display clusters with rank 1, 2 and 3
+choropleth(sids.shp, fls, rank = c(1, 2, 3))
+
+# display clusters of P-value <= 0.05
+choropleth(sids.shp, fls, pval = 0.05)
+}
+
+}
+\seealso{
+\link{flexscan}
+}

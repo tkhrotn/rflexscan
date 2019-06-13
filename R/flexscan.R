@@ -121,7 +121,7 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' parameters.
 #' 
 #' @examples
-#' # load sample data (North Carlina SIDS data from spdep package)
+#' # load sample data (North Carolina SIDS data)
 #' library(spdep)
 #' data("nc.sids")
 #' 
@@ -460,16 +460,29 @@ print.summary.rflexscan <- function(x, ...) {
 #' @seealso \link{flexscan}
 #' 
 #' @examples
-#' \dontrun{
-#' # display all clusters
-#' plot(rflexscan_object)
+#' # load sample data (North Carolina SIDS data)
+#' library(spdep)
+#' data("nc.sids")
 #' 
-#' # display clusters with rank 1 and 2
-#' plot(rflexscan_object, rank = c(1,2))
+#' # calculate the expected numbers of cases
+#' expected <- nc.sids$BIR74 * sum(nc.sids$SID74) / sum(nc.sids$BIR74)
+#' 
+#' # run FleXScan
+#' fls <- flexscan(x = nc.sids$x, y = nc.sids$y,
+#'                 observed = nc.sids$SID74,
+#'                 expected = expected,
+#'                 name = rownames(nc.sids),
+#'                 clustersize = 10,
+#'                 nb = ncCR85.nb)
+#' 
+#' # display all clusters
+#' plot(fls)
+#' 
+#' # display clusters with rank 1, 2 and 3
+#' plot(fls, rank = c(1, 2, 3))
 #' 
 #' # display clusters of P-value <= 0.05
-#' plot(rflexscan_object, pval = 0.05)
-#' }
+#' plot(fls, pval = 0.05)
 #' 
 #' @importFrom igraph graph_from_adjacency_matrix V V<- E E<- plot.igraph
 #' @importFrom grDevices rainbow
@@ -539,6 +552,37 @@ plot.rflexscan <- function(x,
 #' function to specify colors of each cluster. Note that clusters with ranks
 #' larger than the number of colors in the palette are not highlighted.
 #'
+#' @seealso \link{flexscan}
+#' 
+#' @examples
+#' \donttest{
+#' # load sample data (North Carolina SIDS data)
+#' library(rgdal)
+#' library(spdep)
+#' data("nc.sids")
+#' sids.shp <- readOGR(system.file("shapes/sids.shp", package="spData")[1])
+#' 
+#' # calculate the expected numbers of cases
+#' expected <- nc.sids$BIR74 * sum(nc.sids$SID74) / sum(nc.sids$BIR74)
+#' 
+#' # run FleXScan
+#' fls <- flexscan(x = nc.sids$x, y = nc.sids$y,
+#'                 observed = nc.sids$SID74,
+#'                 expected = expected,
+#'                 name = rownames(nc.sids),
+#'                 clustersize = 10,
+#'                 nb = ncCR85.nb)
+#' 
+#' # display all clusters
+#' choropleth(sids.shp, fls)
+#' 
+#' # display clusters with rank 1, 2 and 3
+#' choropleth(sids.shp, fls, rank = c(1, 2, 3))
+#' 
+#' # display clusters of P-value <= 0.05
+#' choropleth(sids.shp, fls, pval = 0.05)
+#' }
+#' 
 #' @import sp grDevices graphics stats utils
 #' 
 #' @export
@@ -552,7 +596,7 @@ choropleth <- function(polygons,
   col <- palette()
   
   # color clusters
-  for (i in 1:length(col)) {
+  for (i in 1:min(length(col), length(fls$cluster))) {
     if (!(i %in% rank & fls$cluster[[i]]$pval <= pval)) {
       col[i] <- region_color
     }
