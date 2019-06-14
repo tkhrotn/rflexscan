@@ -1,7 +1,10 @@
 # rflexscan
-The rflexscan package provides functions and classes to analyze spatial count data using the flexible spatial scan statistic developed by Tango and Takahashi (2005) on [R](https://www.r-project.org/). The original FleXScan software developed by Takahashi et al. is also available at https://sites.google.com/site/flexscansoftware/home.
+The rflexscan package provides functions and classes to analyze spatial count data using the flexible spatial scan statistic developed by Tango and Takahashi (2005) on [R](https://www.r-project.org/).
+The original FleXScan software developed by Takahashi et al. is also available at https://sites.google.com/site/flexscansoftware/home.
 
 Project page: <https://tkhrotn.github.io/rflexscan/>
+
+CRAN: <https://cran.r-project.org/package=rflexscan>
 
 ## Install
 ```r

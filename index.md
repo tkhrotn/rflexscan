@@ -29,6 +29,8 @@ devtools::install_github("tkhrotn/rflexscan")
 
 
 # References
+ * Otani T. and Takahashi K. (2019). rflexscan: The Flexible Spatial Scan Statistic. R package version
+  0.1. <https://CRAN.R-project.org/package=rflexscan>
  * Tango T. and Takahashi K. (2005). A flexibly shaped spatial scan statistic for detecting clusters, International Journal of Health Geographics 4:11.
  * Kulldorff M. (1997). A spatial scan statistic. Communications in Statistics: Theory and Methods, 26:1481-1496.
  * Takahashi K, Yokoyama T and Tango T. (2010). FleXScan v3.1: Software for the Flexible Scan Statistic. National Institute of Public Health, Japan.
