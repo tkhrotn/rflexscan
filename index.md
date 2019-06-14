@@ -19,12 +19,12 @@ rflexscanは高橋邦彦、横山徹爾、丹後俊郎によって開発され�
 
 # Install
 ```r
-# Install development version from GitHub:
+# Install from CRAN
+install.packages("rflexscan")
+
+# Install development version from GitHub
 install.packages("devtools")
 devtools::install_github("tkhrotn/rflexscan")
-
-# Install from CRAN (in preparation!)
-# install.packages("rflexscan")
 ```
 
 
