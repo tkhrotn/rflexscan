@@ -3,6 +3,7 @@ The rflexscan package provides functions and classes to analyze spatial count da
 The original FleXScan software developed by Takahashi et al. is also available at https://sites.google.com/site/flexscansoftware/home.
 
 Project page: <https://tkhrotn.github.io/rflexscan/>
+CRAN: <https://cran.r-project.org/package=rflexscan>
 
 CRAN: <https://cran.r-project.org/package=rflexscan>
 
