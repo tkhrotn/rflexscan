@@ -6,19 +6,22 @@
 using namespace Rcpp;
 
 // runFleXScan
-NumericVector runFleXScan(String settingfile);
-RcppExport SEXP _rflexscan_runFleXScan(SEXP settingfileSEXP) {
+List runFleXScan(const List& setting, const NumericMatrix& case_mat, const NumericMatrix& coord_mat, const NumericMatrix& adj_mat);
+RcppExport SEXP _rflexscan_runFleXScan(SEXP settingSEXP, SEXP case_matSEXP, SEXP coord_matSEXP, SEXP adj_matSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< String >::type settingfile(settingfileSEXP);
-    rcpp_result_gen = Rcpp::wrap(runFleXScan(settingfile));
+    Rcpp::traits::input_parameter< const List& >::type setting(settingSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type case_mat(case_matSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type coord_mat(coord_matSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type adj_mat(adj_matSEXP);
+    rcpp_result_gen = Rcpp::wrap(runFleXScan(setting, case_mat, coord_mat, adj_mat));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_rflexscan_runFleXScan", (DL_FUNC) &_rflexscan_runFleXScan, 1},
+    {"_rflexscan_runFleXScan", (DL_FUNC) &_rflexscan_runFleXScan, 4},
     {NULL, NULL, 0}
 };
 

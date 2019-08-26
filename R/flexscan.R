@@ -179,27 +179,40 @@ flexscan <- function(x, y, lat, lon,
   scanmethod <- match.arg(toupper(scanmethod), flexscan.scanmethod)
   rantype <- match.arg(toupper(rantype), flexscan.rantype)
   
+  # replace space
   name <- sub(" ", "_", name)
 
-  if (!missing(lat) && !missing(lon)) {
+  if (!missing(lat) && !missing(lon) && missing(x) && missing(y)) {
     coordinates <- cbind(lat, lon)
     latlon <- TRUE
-  } else {
+  } else if (missing(lat) && missing(lon) && !missing(x) && !missing(y)) {
     coordinates <- cbind(x, y)
     latlon <- FALSE
+  } else {
+    stop("Coordinates are not properly specified.")
+  }
+  
+  if (missing(observed)) {
+    stop("Observed numbers of diseases are not specified.")
   }
   
   if (!missing(expected)) {
     case <- cbind(observed, expected)
     model <- "POISSON"
-  } else {
+  } else if (!missing(population)) {
     case <- cbind(observed, population)
     model <- "BINOMIAL"
+  } else {
+    stop("Expected numbers of diseases or background population are not specified.")
   }
   
   row.names(coordinates) <- as.character(name)
   row.names(case) <- as.character(name)
-  
+
+  if (missing(nb)) {
+    stop("A neighbours list or an adjacency matrix are not specified.")
+  }
+    
   if (is.matrix(nb)) {
     adj_mat <- nb
   } else {
@@ -210,96 +223,35 @@ flexscan <- function(x, y, lat, lon,
   }
   row.names(adj_mat) <- row.names(coordinates)
   colnames(adj_mat) <- row.names(coordinates)
-  
-  casefile <- tempfile()
-  coofile <- tempfile()
-  mt0file <- tempfile()
-  mtrfile <- tempfile()
-  resultfile <- tempfile()
-  lambdafile <- tempfile()
-  edgefile <- tempfile()
-  nodefile <- tempfile()
-  rfile <- tempfile()
-  settingfile <- tempfile()
-  stdoutfile <- tempfile()
-  
-  write.table(case, file = casefile, quote = FALSE, col.names = FALSE)
-  write.table(coordinates, file = coofile, quote = FALSE, col.names = FALSE)
-  
   diag(adj_mat) <- 2
-  write.table(adj_mat, file = mt0file, quote = FALSE, col.names = FALSE)
-  
-  for (i in 1:nrow(adj_mat)) {
-    cat(name[adj_mat[i,] != 0], "\n", file = mtrfile, append = TRUE)
+
+  setting <- list()
+  setting$clustersize <- clustersize
+  setting$radius <- radius
+  setting$model <- as.integer(model == "BINOMIAL")
+  setting$stattype <- as.integer(stattype == "RESTRICTED")
+  setting$scanmethod <- as.integer(scanmethod == "CIRCULAR")
+  setting$ralpha <- ralpha
+  setting$cartesian <- as.integer(!latlon)
+  setting$simcount <- simcount
+  setting$rantype <- as.integer(rantype == "POISSON")
+      
+  if (!verbose) {
+    result <- capture.output({
+      start <- date()
+      clst <- runFleXScan(setting, case, coordinates, adj_mat)
+      end <- date()
+    })
+  } else {
+    start <- date()
+    clst <- runFleXScan(setting, case, coordinates, adj_mat)
+    end <- date()
+    result <- NULL
   }
   
-  # Write setting file
-  cat("[FLEXSCAN]\n", sep = "", file = settingfile, append = TRUE)
-  cat("VERSION=3.1.2\n", sep = "", file =settingfile, append = TRUE)
-  cat("CASE=", casefile, "\n", sep = "", file =settingfile, append = TRUE)
-  cat("COORDINATES=", coofile, "\n", sep = "", file =settingfile, append = TRUE)
-  cat("MATRIX=", mt0file, "\n", sep = "", file =settingfile, append = TRUE)
-  cat("MATRIXmtr=", mtrfile, "\n", sep = "", file =settingfile, append = TRUE)
-  cat("RESULTS=", resultfile, "\n", sep = "", file =settingfile, append = TRUE)
-  cat("LAMBDAFILE=", lambdafile, "\n", sep = "", file =settingfile, append = TRUE)
-  cat("EDGEFILE=", edgefile, "\n", sep = "", file =settingfile, append = TRUE)
-  cat("NODEFILE=", nodefile, "\n", sep = "", file =settingfile, append = TRUE)
-  cat("RFILE=", rfile, "\n", sep = "", file =settingfile, append = TRUE)
-  cat("CLUSTERSIZE=", clustersize, "\n", sep = "", file =settingfile, append = TRUE)
-  cat("RADIUS=", radius, "\n", sep = "", file =settingfile, append = TRUE)
-  cat("MODEL=", model, "\n", sep = "", file =settingfile, append = TRUE)
-  cat("STATTYPE=", as.integer(stattype == "RESTRICTED"), "\n", sep = "", file =settingfile, append = TRUE)
-  cat("SCANMETHOD=", scanmethod, "\n", sep = "", file =settingfile, append = TRUE)
-  cat("RALPHA=", ralpha, "\n", sep = "", file =settingfile, append = TRUE)
-  cat("CARTESIAN=", as.integer(!latlon), "\n", sep = "", file =settingfile, append = TRUE)
-  cat("SIMCOUNT=", simcount, "\n", sep = "", file =settingfile, append = TRUE)
-  cat("RANTYPE=", rantype, "\n", sep = "", file =settingfile, append = TRUE)
-  cat("RANSEED=", 0, "\n", sep = "", file =settingfile, append = TRUE)  # ignored
-  cat("COMMENT=", comments, "\n", sep = "", file =settingfile, append = TRUE)
-  
-  if (!verbose)
-    sink(stdoutfile)
-  
-  start <- date()
-  exit_code <- runFleXScan(settingfile)
-  end <- date()
-  
-  if (!verbose)
-    sink()
-  
-  result <- scan(resultfile, what = character(), sep = "\n", blank.lines.skip = FALSE, quiet = TRUE)
-  clst <- read.table(rfile, header = TRUE, stringsAsFactors = FALSE)
-  
   if (toupper(model) == "POISSON") {
-    clst <- apply(clst, 1, function(x){
-      obj <- list()
-      obj$max_dist <- as.numeric(x[1])
-      obj$from <- as.character(x[2])
-      obj$to <- as.character(x[3])
-      obj$n_case <- as.integer(x[4])
-      obj$expected <- as.numeric(x[5])
-      obj$RR <- as.numeric(x[6])
-      obj$stats <- as.numeric(x[7])
-      obj$rank <- as.integer(x[8])
-      obj$pval <- as.numeric(x[9])
-      obj$area <- which(as.logical(as.integer(x[-(1:9)])))
-      class(obj) <- 'Cluster'
-      obj})
     colnames(case) <- c("Observed", "Expected")
   } else {
-    clst <- apply(clst, 1, function(x){
-      obj <- list()
-      obj$max_dist <- as.numeric(x[1])
-      obj$from <- as.character(x[2])
-      obj$to <- as.character(x[3])
-      obj$n_case <- as.integer(x[4])
-      obj$population <- as.integer(x[5])
-      obj$stats <- as.numeric(x[6])
-      obj$rank <- as.integer(x[7])
-      obj$pval <- as.numeric(x[8])
-      obj$area <- which(as.logical(as.integer(x[-(1:8)])))
-      class(obj) <- 'Cluster'
-      obj})
     colnames(case) <- c("Observed", "Population")
   }
   
@@ -323,6 +275,14 @@ flexscan <- function(x, y, lat, lon,
   class(retval) <- "rflexscan"
 
   return(retval)
+}
+
+
+#' Print rflexscan object
+#' 
+#' TODO: implement print method for the rflexscan object
+print.rflexscan <- function(x, ...) {
+  
 }
 
 
