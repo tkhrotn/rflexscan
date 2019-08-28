@@ -1,11 +1,6 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-// flscan312.cpp
-// Modified by Suzuryo, 2011/9/22. l.1302-1316
-// Added by Suzuryo, 2011/9/28
-// Modified by Otani, 2019
-
 /* #pragma inline */
 
 #include <stdlib.h>
@@ -15,10 +10,6 @@ using namespace Rcpp;
 #include <memory.h>
 #include <string.h>
 //#pragma hdrstop
-
-//#include "com.h"
-//#include "ransuu2.h"
-//#include "ranlib.h"
 
 #define ErrMemory (1)
 #define ErrFile0 (2)
@@ -34,15 +25,10 @@ using namespace Rcpp;
 #define ErrFile4ID (14)
 #define ErrFile10 (20)
 #define ErrFile11 (21)
-//***Added by suzuryo, 2011.9.28
 #define ErrFile12 (22)
-//***end
-//***Added by suzuryo, 2011.10.6
 #define ErrFile13 (23)
-//***end
-//***Added by Otani, 2019
 #define ErrFile14 (24)
-//***end
+
 #define ErrData (30)
 #define Err99 (99)
 
@@ -1140,222 +1126,222 @@ List	FlexScan() {
   int		rnk;
   
   int     SECONDARY = 64;	/* number of secondary clusters */
-int		NOMORE = 0;		/* 1:nomore secondary cluster */
-
-List retval;
-
-if (MODEL == 0 && lors == 0)
-  for (i = 0; i <= nGmax; ++i)
-    minmZ_zlength[i] = 0;
-
-for (phase = 0; phase <= SECONDARY; ++phase) {
-  if (phase == 0) {
-    SIM = SIMCOUNT;
-    Rprintf("*** SCANNING MOST LIKELY CLUSTER with %d MONTE CARLO REPLICATIONS ***\n", SIM);
-  } else {
-    SIM = 0;
-    Rprintf("*** SCANNING SECONDARY CLUSTERS (%d) ***\n", phase);
-  };
+  int		NOMORE = 0;		/* 1:nomore secondary cluster */
   
-  if (MODEL == 0 && lors == 0) {
+  List retval;
+  
+  if (MODEL == 0 && lors == 0)
+    for (i = 0; i <= nGmax; ++i)
+      minmZ_zlength[i] = 0;
+  
+  for (phase = 0; phase <= SECONDARY; ++phase) {
+    if (phase == 0) {
+      SIM = SIMCOUNT;
+      Rprintf("*** SCANNING MOST LIKELY CLUSTER with %d MONTE CARLO REPLICATIONS ***\n", SIM);
+    } else {
+      SIM = 0;
+      Rprintf("*** SCANNING SECONDARY CLUSTERS (%d) ***\n", phase);
+    }
+    
+    if (MODEL == 0 && lors == 0) {
+      for (s = 0; s <= SIM; ++s)
+        for (i = 0; i <= nGmax; ++i)
+          minmZ[s][i] = mG;
+    }
+    
     for (s = 0; s <= SIM; ++s)
-      for (i = 0; i <= nGmax; ++i)
-        minmZ[s][i] = mG;
-  };
-  
-  for (s = 0; s <= SIM; ++s)
-    maxstat[s] = -1.0;
-  
-  for (center = 0; center < N; ++center) {
-    if (detectedarea[center] == -1)
-      continue;
+      maxstat[s] = -1.0;
     
+    for (center = 0; center < N; ++center) {
+      if (detectedarea[center] == -1)
+        continue;
+      
+      if (phase == 0) {
+        if (center == 0)
+          Rprintf("Scanning areas around %s", area[center].id);
+        else
+          Rprintf(", %s", area[center].id);
+      }
+      
+      ScanNearestNeighbours(center); /* and set the list to w[] */
+  
+      ind_k = 0;
+      for (K2 = 0; K2 < N; ++K2) {
+        if (detectedarea[w[K2]] != -1)
+          ++ind_k;
+        
+        if (ind_k > K)
+          break;
+      }
+      
+      z[0] = center;
+      
+      if (MODEL == 0 && lors == 0) {	/* Poisson Model small nG */
+        if (STATTYPE == 1) {	/* LLR with restriction */
+          for (s = 0; s <= SIM; ++s) {
+            if (pv0[center][s] < RALPHA) {
+              mZ = popul[center];
+              nZ[s] = cases[center][s];
+              
+              if (SCANMETHOD == 1)
+                CircularScan1s(1, s);
+              else
+                FlexibleScan1s(1, s);
+            }
+          }
+        } else {	/* LLR original */
+          mZ = popul[center];
+          for (s = 0; s <= SIM; ++s)
+            nZ[s] = cases[center][s];
+          
+          if (SCANMETHOD == 1)
+            CircularScan0s(1);
+          else
+            FlexibleScan0s(1);
+        }
+      } else if (MODEL == 0 && lors == 1) { /* Poisson Model large nG */
+        if (STATTYPE == 1) {	/* LLR with restriction */
+          for (s = 0; s <= SIM; ++s) {
+            if (pv0[center][s] < RALPHA) {
+              mZ = popul[center];
+              nZ[s] = cases[center][s];
+              if (SCANMETHOD == 1)
+                CircularScan1l(1, s);
+              else
+                FlexibleScan1l(1, s);
+            }
+          }
+        } else {	/* LLR original */
+          mZ = popul[center];
+          for (s = 0; s <= SIM; ++s)
+            nZ[s] = cases[center][s];
+          
+          if (SCANMETHOD == 1)
+            CircularScan0l(1);
+          else
+            FlexibleScan0l(1);
+        }
+      } else if (MODEL == 1) {	/* Binomial Model */
+        if (STATTYPE == 1) {	/* LLR with restriction */
+          for (s = 0; s <= SIM; ++s) {
+            if (pv0[center][s] < RALPHA) {
+              mZ = popul[center];
+              nZ[s] = cases[center][s];
+              
+              if (SCANMETHOD == 1)
+                CircularScanB1(1, s);
+              else
+                FlexibleScanB1(1, s);
+            };
+          };
+        } else {	/* LLR original */
+          mZ = popul[center];
+          for (s = 0; s <= SIM; ++s)
+            nZ[s] = cases[center][s];
+          
+          if (SCANMETHOD == 1)
+            CircularScanB0(1);
+          else
+            FlexibleScanB0(1);
+        }
+      }
+    }
+    
+    if (phase == 0)
+      Rprintf("\n");
+      
+    if (MODEL == 0 && lors == 0) {
+      CalcLambda0s();
+    }
+    
+    if (MODEL == 1 || lors == 1) {
+      lkc.z_length = MLC_zlength;
+      lkc.nZ = 0;
+      lkc.mZ = 0;
+      for (j = 0; j < lkc.z_length; ++j) {
+        lkc.z[j] = MLC_z[j];
+        lkc.nZ += cases[lkc.z[j]][0];
+        lkc.mZ += popul[lkc.z[j]];
+      }
+      lkc.lambda = maxstat[0];
+      
+      qsort((void *)(&lkc.z[0]), lkc.z_length, sizeof(lkc.z[0]), sort_func1);
+    }
+    
+    for (j = 0; j < lkc.z_length; ++j)
+      detectedarea[lkc.z[j]] = 1;
+    
+    /* output the results */
     if (phase == 0) {
-      if (center == 0)
-        Rprintf("Scanning areas around %s", area[center].id);
-      else
-        Rprintf(", %s", area[center].id);
-    };
-    
-    ScanNearestNeighbours(center); /* and set the list to w[] */
-
-ind_k = 0;
-for (K2 = 0; K2 < N; ++K2) {
-  if (detectedarea[w[K2]] != -1)
-    ++ind_k;
-  
-  if (ind_k > K)
-    break;
-};
-
-z[0] = center;
-
-if (MODEL == 0 && lors == 0) {	/* Poisson Model small nG */
-if (STATTYPE == 1) {	/* LLR with restriction */
-for (s = 0; s <= SIM; ++s) {
-  if (pv0[center][s] < RALPHA) {
-    mZ = popul[center];
-    nZ[s] = cases[center][s];
-    
-    if (SCANMETHOD == 1)
-      CircularScan1s(1, s);
-    else
-      FlexibleScan1s(1, s);
-  };
-};
-} else {	/* LLR original */
-mZ = popul[center];
-  for (s = 0; s <= SIM; ++s)
-    nZ[s] = cases[center][s];
-  
-  if (SCANMETHOD == 1)
-    CircularScan0s(1);
-  else
-    FlexibleScan0s(1);
-};
-} else if (MODEL == 0 && lors == 1) { /* Poisson Model large nG */
-if (STATTYPE == 1) {	/* LLR with restriction */
-for (s = 0; s <= SIM; ++s) {
-  if (pv0[center][s] < RALPHA) {
-    mZ = popul[center];
-    nZ[s] = cases[center][s];
-    if (SCANMETHOD == 1)
-      CircularScan1l(1, s);
-    else
-      FlexibleScan1l(1, s);
-  };
-};
-} else {	/* LLR original */
-mZ = popul[center];
-  for (s = 0; s <= SIM; ++s)
-    nZ[s] = cases[center][s];
-  
-  if (SCANMETHOD == 1)
-    CircularScan0l(1);
-  else
-    FlexibleScan0l(1);
-};
-} else if (MODEL == 1) {	/* Binomial Model */
-if (STATTYPE == 1) {	/* LLR with restriction */
-for (s = 0; s <= SIM; ++s) {
-  if (pv0[center][s] < RALPHA) {
-    mZ = popul[center];
-    nZ[s] = cases[center][s];
-    
-    if (SCANMETHOD == 1)
-      CircularScanB1(1, s);
-    else
-      FlexibleScanB1(1, s);
-  };
-};
-} else {	/* LLR original */
-mZ = popul[center];
-  for (s = 0; s <= SIM; ++s)
-    nZ[s] = cases[center][s];
-  
-  if (SCANMETHOD == 1)
-    CircularScanB0(1);
-  else
-    FlexibleScanB0(1);
-};
-};
-
-  };
-  
-  if (phase == 0)
-    Rprintf("\n");
-  
-  if (MODEL == 0 && lors == 0) {
-    CalcLambda0s();
-  };
-  
-  if (MODEL == 1 || lors == 1) {
-    lkc.z_length = MLC_zlength;
-    lkc.nZ = 0;
-    lkc.mZ = 0;
-    for (j = 0; j < lkc.z_length; ++j) {
-      lkc.z[j] = MLC_z[j];
-      lkc.nZ += cases[lkc.z[j]][0];
-      lkc.mZ += popul[lkc.z[j]];
-    };
-    lkc.lambda = maxstat[0];
-    
-    qsort((void *)(&lkc.z[0]), lkc.z_length, sizeof(lkc.z[0]), sort_func1);
-  };
-  
-  
-  for (j = 0; j < lkc.z_length; ++j)
-    detectedarea[lkc.z[j]] = 1;
-  
-  /* output the results */
-  if (phase == 0) {
       qsort((void *)(&maxstat[1]), SIMCOUNT, sizeof(maxstat[1]), sort_func3);
-  }
-  
-  if (lkc.z_length == 0) {
-    if (phase == 0) {
-      Rprintf("*** There is no cluster ***\n");
-    } else {
-      Rprintf("*** There are no more secondary clusters ***\n");
-    };
+    }
     
-    NOMORE = 1;
-    
-  };
-  
-  if (NOMORE == 0) {
-    maxdist = MaxDistance(&(lkc.z[0]), lkc.z_length, &maxdistz1, &maxdistz2);
-    
-    for (j = 1; j <= SIMCOUNT; ++j)
-      if (lkc.lambda > maxstat[j])
-        break;
-    
-    rnk = j;
-    
-    if (rnk == SIMCOUNT + 1) {
-      Rprintf("*** There are no more secondary clusters ***\n");
+    if (lkc.z_length == 0) {
+      if (phase == 0) {
+        Rprintf("*** There is no cluster ***\n");
+      } else {
+        Rprintf("*** There are no more secondary clusters ***\n");
+      }
+      
       NOMORE = 1;
-    };
-    
-
-    //***added by Otani, 2019
-
-
-    List obj;
-    if (MODEL == 0) {
-      obj["max_dist"] = maxdist;
-      obj["from"] = String(area[maxdistz1].id);
-      obj["to"] = String(area[maxdistz2].id);
-      obj["n_case"] = lkc.nZ;
-      obj["expected"] = (double)lkc.mZ;
-      obj["RR"] = ((double)lkc.nZ / (double)lkc.mZ) / ((double)nG[0] / (double)mG);
-      obj["stats"] = lkc.lambda;
-      obj["rank"] = rnk;
-      obj["pval"] = (double)j / (double)(SIMCOUNT + 1);
-    } else {
-      obj["max_dist"] = maxdist;
-      obj["from"] = String(area[maxdistz1].id);
-      obj["to"] = String(area[maxdistz2].id);
-      obj["n_case"] = lkc.nZ;
-      obj["population"] = lkc.mZ;
-      obj["stats"] = lkc.lambda;
-      obj["rank"] = rnk;
-      obj["pval"] = (double)j / (double)(SIMCOUNT + 1);
     }
     
-    NumericVector idx;
-    for (j = 0; j < lkc.z_length; ++j) {
-      idx.push_back(lkc.z[j] + 1);
+    if (NOMORE == 0) {
+      maxdist = MaxDistance(&(lkc.z[0]), lkc.z_length, &maxdistz1, &maxdistz2);
+      
+      for (j = 1; j <= SIMCOUNT; ++j)
+        if (lkc.lambda > maxstat[j])
+          break;
+      
+      rnk = j;
+      
+      if (rnk == SIMCOUNT + 1) {
+        Rprintf("*** There are no more secondary clusters ***\n");
+        NOMORE = 1;
+      }
+
+      List obj;
+      if (MODEL == 0) {
+        obj["max_dist"] = maxdist;
+        obj["from"] = String(area[maxdistz1].id);
+        obj["to"] = String(area[maxdistz2].id);
+        obj["n_case"] = lkc.nZ;
+        obj["expected"] = (double)lkc.mZ;
+        obj["RR"] = ((double)lkc.nZ / (double)lkc.mZ) / ((double)nG[0] / (double)mG);
+        obj["stats"] = lkc.lambda;
+        obj["rank"] = rnk;
+        obj["pval"] = (double)j / (double)(SIMCOUNT + 1);
+      } else {
+        obj["max_dist"] = maxdist;
+        obj["from"] = String(area[maxdistz1].id);
+        obj["to"] = String(area[maxdistz2].id);
+        obj["n_case"] = lkc.nZ;
+        obj["population"] = lkc.mZ;
+        obj["stats"] = lkc.lambda;
+        obj["rank"] = rnk;
+        obj["pval"] = (double)j / (double)(SIMCOUNT + 1);
+      }
+
+      NumericVector idx;
+      CharacterVector name;
+      for (j = 0; j < lkc.z_length; ++j) {
+        idx.push_back(lkc.z[j] + 1);
+        name.push_back(area[lkc.z[j]].id);
+      }
+      obj["area"] = idx;
+      obj["name"] = name;
+      
+      obj.attr("class") = "rflexscanCluster";
+      
+      retval.push_back(obj);
     }
-    obj["area"] = idx;
-    retval.push_back(obj);
-    //***end
+    
+    if (NOMORE == 1) {
+      return retval;
+    }
   }
   
-  if (NOMORE == 1) {
-    return retval;
-  };
-};
+  return retval;
 }
 
 
@@ -1684,24 +1670,77 @@ int     LoadData(const NumericMatrix &case_mat,
   return 0;
 }
 
-/* --------------------------------------------------------------*/
-char    *ffgets(char *buf, int len, FILE *fp) {
-  char    *status = fgets(buf, len, fp);
+
+void FreeData(void) {
   int     i;
   
-  if (buf == NULL)
-    return(NULL);
-  i = strlen(buf);
-  if (buf[i-1] == '\n')
-    buf[i-1] = '\0';
-  return(status);
+  free(area_sorted);
+  free(detectedarea);
+  
+  for (i = 0; i < N; ++i) {
+    free(area[i].id);
+  }
+  free(area);
+  
+  for (i = 0; i < N; ++i) {
+    free(a[i]);
+  }
+  free(a);
+  free(calen);
+  for (i = 0; i < N; ++i) {
+    free(ca[i]);
+  }
+  free(ca);
+  free(caz);
+  free(masksw);
+  free(popul);
+
+  for (i = 0; i < N; ++i) {
+    free(cases[i]);
+  }
+  free(cases);
+  
+  free(pp);
+  free(rtmp);
+  
+  for (i = 0; i < N; ++i) {
+    free(pv0[i]);
+  }
+  free(pv0);
+    
+  free(nG);
+
+  free(maxstat);
+  
+  if (MODEL == 0) {
+    if (lors == 0) {
+      free(minmZ_zlength);
+      
+      for (i = 0; i <= nGmax; ++i) {
+        free(minmZ_z[i]);
+      }
+      free(minmZ_z);
+      
+      for (i = 0; i <= SIMCOUNT; ++i) {
+        free(minmZ[i]);
+      }
+      free(minmZ);
+    } else {
+      free(MLC_z);
+      free(Lpoi0);      
+    }
+  } else if (MODEL == 1) {
+    free(MLC_z);
+    free(Lbin0);
+  }
 }
 
-/* -----------------------------------------------------------------*/
-List flexcore(const List &setting,
-              const NumericMatrix &case_mat,
-              const NumericMatrix &coord_mat,
-              const NumericMatrix &adj_mat) {
+
+// [[Rcpp::export]]
+List runFleXScan(const List &setting,
+                 const NumericMatrix &case_mat,
+                 const NumericMatrix &coord_mat,
+                 const NumericMatrix &adj_mat) {
   int     i, s;
   int		SIM2;
   double	totp;
@@ -1769,20 +1808,9 @@ List flexcore(const List &setting,
   
   List retval = FlexScan();
   
-  if (lors == 0)
-    free(minmZ);
-  
   Rprintf("-----\n");
   
-  return retval;
-}
-
-// [[Rcpp::export]]
-List runFleXScan(const List &setting,
-                 const NumericMatrix &case_mat,
-                 const NumericMatrix &coord_mat,
-                 const NumericMatrix &adj_mat) {
-  List retval = flexcore(setting, case_mat, coord_mat, adj_mat);
+  FreeData();
   
   return retval;
 }

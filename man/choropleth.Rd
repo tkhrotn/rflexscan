@@ -40,12 +40,12 @@ sids.shp <- readOGR(system.file("shapes/sids.shp", package="spData")[1])
 expected <- nc.sids$BIR74 * sum(nc.sids$SID74) / sum(nc.sids$BIR74)
 
 # run FleXScan
-fls <- flexscan(x = nc.sids$x, y = nc.sids$y,
-                observed = nc.sids$SID74,
-                expected = expected,
-                name = rownames(nc.sids),
-                clustersize = 10,
-                nb = ncCR85.nb)
+fls <- rflexscan(x = nc.sids$x, y = nc.sids$y,
+                 observed = nc.sids$SID74,
+                 expected = expected,
+                 name = rownames(nc.sids),
+                 clustersize = 10,
+                 nb = ncCR85.nb)
 
 # display all clusters
 choropleth(sids.shp, fls)
@@ -59,5 +59,5 @@ choropleth(sids.shp, fls, pval = 0.05)
 
 }
 \seealso{
-\link{flexscan}
+\link{rflexscan}
 }

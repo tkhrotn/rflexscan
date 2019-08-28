@@ -6,6 +6,14 @@
 \usage{
 \method{print}{rflexscan}(x, ...)
 }
+\arguments{
+\item{x}{An rflexscan object to be printed.}
+
+\item{...}{Ignored.}
+}
 \description{
-TODO: implement print method for the rflexscan object
+Print method for the rflexscan object.
+}
+\seealso{
+\link{rflexscan}
 }
