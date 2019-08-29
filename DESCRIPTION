@@ -15,6 +15,7 @@ Imports: Rcpp,
     igraph,
     rgdal,
     grDevices,
+    RColorBrewer,
     sp
 LinkingTo: Rcpp
 Suggests: knitr,

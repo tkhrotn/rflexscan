@@ -141,9 +141,9 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' summary(fls)
 #' 
 #' # Plot graph
-#' plot(fls)
+#' plot(fls, col = brewer.pal(8, "Set1"))
 #' labs <- 1:length(fls$cluster)
-#' legend("topright", legend = labs, col = palette()[labs], lty = 1)
+#' legend("bottomleft", legend = labs, col = brewer.pal(8, "Set1")[labs], lty = 1)
 #' 
 #' @references
 #'   Tango T. and Takahashi K. (2005). A flexibly shaped spatial scan 
@@ -267,9 +267,13 @@ rflexscan <- function(x, y, lat, lon,
   setting$cartesian <- !latlon
   setting$rantype <- rantype
   
-  retval <- list(call=call, coordinates=coordinates, case=case,
-                 adj_mat=adj_mat, cluster=clst, setting=setting,
-                 comments=comments)
+  input <- list()
+  input$coordinates <- coordinates
+  input$case <- case
+  input$adj_mat <- adj_mat
+  
+  retval <- list(call = call, input = input, cluster = clst,
+                 setting = setting, comments = comments)
   class(retval) <- "rflexscan"
 
   return(retval)
@@ -347,8 +351,8 @@ print.rflexscanCluster <- function(x, ...) {
 #' 
 summary.rflexscan <- function(object, ...) {
   n_cluster <- length(object$cluster)
-  total_areas <- nrow(object$case)
-  total_cases <- sum(object$case[,"Observed"])
+  total_areas <- nrow(object$input$case)
+  total_cases <- sum(object$input$case[,"Observed"])
 
   n_area <- sapply(object$cluster, function(i){length(i$area)})
   max_dist <- sapply(object$cluster, function(i) {i$max_dist})
@@ -505,7 +509,7 @@ print.summary.rflexscan <- function(x, ...) {
 #' plot(fls, pval = 0.05)
 #' 
 #' @importFrom igraph graph_from_adjacency_matrix V V<- E E<- plot.igraph
-#' @importFrom grDevices rainbow
+#' @importFrom RColorBrewer brewer.pal
 #' 
 #' @method plot rflexscan
 #' @export
@@ -513,20 +517,22 @@ print.summary.rflexscan <- function(x, ...) {
 plot.rflexscan <- function(x,
                   rank=1:length(x$cluster),
                   pval=1,
-                  vertexsize=max(x$coordinates[,1])-min(x$coordinates[,1]),
-                  xlab=colnames(x$coordinates)[1],
-                  ylab=colnames(x$coordinates)[2],
-                  xlim=c(min(x$coordinates[,1]), max(x$coordinates[,1])),
-                  ylim=c(min(x$coordinates[,2]), max(x$coordinates[,2])),
-                   ...) {
-  col <- palette()
+                  vertexsize=max(x$input$coordinates[,1])-min(x$input$coordinates[,1]),
+                  xlab=colnames(x$input$coordinates)[1],
+                  ylab=colnames(x$input$coordinates)[2],
+                  xlim=c(min(x$input$coordinates[,1]), max(x$input$coordinates[,1])),
+                  ylim=c(min(x$input$coordinates[,2]), max(x$input$coordinates[,2])),
+                  col=brewer.pal(8, "Set1"),
+                  frame_color="gray40",
+                  vertex_color="white",
+                  ...) {
   
-  g <- graph_from_adjacency_matrix(x$adj_mat, mode = "undirected", diag = FALSE, weighted = TRUE)
+  g <- graph_from_adjacency_matrix(x$input$adj_mat, mode = "undirected", diag = FALSE, weighted = TRUE)
   V(g)$size <- vertexsize
-  V(g)$frame.color <- "gray40"
-  V(g)$color <- "white"
+  V(g)$frame.color <- frame.col
+  V(g)$color <- vertex.col
   V(g)$label <- ""
-  E(g)$color <- "gray40"
+  E(g)$color <- frame.col
   
   # color clusters
   for (i in 1:min(length(col), length(x$cluster))) {
@@ -537,11 +543,11 @@ plot.rflexscan <- function(x,
   }
   
   if (x$setting$cartesian) {
-    plot(g, axes = TRUE, layout = as.matrix(x$coordinates[,c(1,2)]), rescale = FALSE,
+    plot(g, axes = TRUE, layout = as.matrix(x$input$coordinates[,c(1,2)]), rescale = FALSE,
          xlab = xlab, ylab = ylab, xlim = xlim, ylim = ylim, ...)
   } else {
     # flip X-Y (x:longitude, y:latitude)
-    plot(g, axes = TRUE, layout = as.matrix(x$coordinates[,c(2,1)]), rescale = FALSE,
+    plot(g, axes = TRUE, layout = as.matrix(x$input$coordinates[,c(2,1)]), rescale = FALSE,
          xlab = ylab, ylab = xlab, xlim = ylim, ylim = xlim, ...)
   }
 }
@@ -611,12 +617,11 @@ plot.rflexscan <- function(x,
 #' 
 choropleth <- function(polygons,
                        fls,
+                       col=brewer.pal(8, "Set1"),
                        region_color="#F0F0F0",
                        rank=1:length(fls$cluster),
                        pval=1,
                        ...) {
-  col <- palette()
-  
   # color clusters
   for (i in 1:min(length(col), length(fls$cluster))) {
     if (!(i %in% rank & fls$cluster[[i]]$pval <= pval)) {
@@ -625,7 +630,7 @@ choropleth <- function(polygons,
   }
   col <- c(col, region_color)
 
-  index <- numeric(nrow(fls$case))
+  index <- numeric(nrow(fls$input$case))
   for (i in 1:length(fls$cluster)) {
     index[fls$cluster[[i]]$area] <- i
   }

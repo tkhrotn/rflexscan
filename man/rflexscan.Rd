@@ -95,9 +95,9 @@ fls <- rflexscan(x = nc.sids$x, y = nc.sids$y,
 summary(fls)
 
 # Plot graph
-plot(fls)
+plot(fls, col = brewer.pal(8, "Set1"))
 labs <- 1:length(fls$cluster)
-legend("topright", legend = labs, col = palette()[labs], lty = 1)
+legend("bottomleft", legend = labs, col = brewer.pal(8, "Set1")[labs], lty = 1)
 
 }
 \references{
