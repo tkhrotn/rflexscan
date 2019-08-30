@@ -13,6 +13,8 @@ choropleth(polygons, fls, col = brewer.pal(8, "Set1"),
 
 \item{fls}{An rflexscan object.}
 
+\item{col}{A vector of colors for each cluster.}
+
 \item{region_color}{Color of regions that are not included in any clusters.}
 
 \item{rank}{An integer vector which specifies ranks of clusters to be displayed.}

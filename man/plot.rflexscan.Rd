@@ -30,6 +30,12 @@
 
 \item{ylim}{The y limits of the plot.}
 
+\item{col}{A vector of colors for each cluster.}
+
+\item{frame_color}{Color of frames in the graph.}
+
+\item{vertex_color}{Fill color of vertices that are not included in any clusters.}
+
 \item{...}{Other parameters to be passed to \link{plot.igraph} function.}
 }
 \description{

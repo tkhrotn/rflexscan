@@ -141,6 +141,7 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' summary(fls)
 #' 
 #' # Plot graph
+#' library(RColorBrewer)
 #' plot(fls, col = brewer.pal(8, "Set1"))
 #' labs <- 1:length(fls$cluster)
 #' legend("bottomleft", legend = labs, col = brewer.pal(8, "Set1")[labs], lty = 1)
@@ -473,6 +474,15 @@ print.summary.rflexscan <- function(x, ...) {
 #' @param ylim
 #' The y limits of the plot.
 #' 
+#' @param col
+#' A vector of colors for each cluster.
+#' 
+#' @param frame_color
+#' Color of frames in the graph.
+#' 
+#' @param vertex_color
+#' Fill color of vertices that are not included in any clusters.
+#' 
 #' @param ...
 #' Other parameters to be passed to \link{plot.igraph} function.
 #' 
@@ -529,10 +539,10 @@ plot.rflexscan <- function(x,
   
   g <- graph_from_adjacency_matrix(x$input$adj_mat, mode = "undirected", diag = FALSE, weighted = TRUE)
   V(g)$size <- vertexsize
-  V(g)$frame.color <- frame.col
-  V(g)$color <- vertex.col
+  V(g)$frame.color <- frame_color
+  V(g)$color <- vertex_color
   V(g)$label <- ""
-  E(g)$color <- frame.col
+  E(g)$color <- frame_color
   
   # color clusters
   for (i in 1:min(length(col), length(x$cluster))) {
@@ -562,6 +572,9 @@ plot.rflexscan <- function(x,
 #' 
 #' @param fls
 #' An rflexscan object.
+#' 
+#' @param col
+#' A vector of colors for each cluster.
 #' 
 #' @param region_color
 #' Color of regions that are not included in any clusters. 
