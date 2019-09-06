@@ -10,8 +10,8 @@
   ylab = colnames(x$input$coordinates)[2],
   xlim = c(min(x$input$coordinates[, 1]), max(x$input$coordinates[, 1])),
   ylim = c(min(x$input$coordinates[, 2]), max(x$input$coordinates[, 2])),
-  col = brewer.pal(8, "Set1"), frame_color = "gray40",
-  vertex_color = "white", ...)
+  col = palette(), frame_color = "gray40", vertex_color = "white",
+  ...)
 }
 \arguments{
 \item{x}{An rflexscan object.}

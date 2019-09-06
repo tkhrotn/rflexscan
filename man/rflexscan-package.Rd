@@ -16,6 +16,8 @@ Takahashi (2005). This package designed for any of the following interrelated
   \item To perform geographical surveillance of disease, to detect areas of 
         significantly high rates.
 }
+This package implements a wrapper for the C routine used in the FleXScan 3.1.2 
+developed by Takahashi, Yokoyama, and Tango.
 }
 \references{
 \itemize{

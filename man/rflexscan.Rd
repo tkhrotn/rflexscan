@@ -91,14 +91,16 @@ fls <- rflexscan(x = nc.sids$x, y = nc.sids$y,
                  clustersize = 10,
                  nb = ncCR85.nb)
 
-# Print summary to the terminal
+# print rflexscan object
+print(fls)
+
+# print summary to the terminal
 summary(fls)
 
-# Plot graph
-library(RColorBrewer)
-plot(fls, col = brewer.pal(8, "Set1"))
+# plot graph
+plot(fls, col = palette())
 labs <- 1:length(fls$cluster)
-legend("bottomleft", legend = labs, col = brewer.pal(8, "Set1")[labs], lty = 1)
+legend("bottomleft", legend = labs, col = palette(), lty = 1)
 
 }
 \references{

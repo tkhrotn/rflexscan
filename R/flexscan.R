@@ -11,6 +11,8 @@
 #'   \item To perform geographical surveillance of disease, to detect areas of 
 #'         significantly high rates.
 #' }
+#' This package implements a wrapper for the C routine used in the FleXScan 3.1.2 
+#' developed by Takahashi, Yokoyama, and Tango.
 #' 
 #' @references 
 #' \itemize{
@@ -137,14 +139,16 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #'                  clustersize = 10,
 #'                  nb = ncCR85.nb)
 #' 
-#' # Print summary to the terminal
+#' # print rflexscan object
+#' print(fls)
+#' 
+#' # print summary to the terminal
 #' summary(fls)
 #' 
-#' # Plot graph
-#' library(RColorBrewer)
-#' plot(fls, col = brewer.pal(8, "Set1"))
+#' # plot graph
+#' plot(fls, col = palette())
 #' labs <- 1:length(fls$cluster)
-#' legend("bottomleft", legend = labs, col = brewer.pal(8, "Set1")[labs], lty = 1)
+#' legend("bottomleft", legend = labs, col = palette(), lty = 1)
 #' 
 #' @references
 #'   Tango T. and Takahashi K. (2005). A flexibly shaped spatial scan 
@@ -298,8 +302,8 @@ print.rflexscan <- function(x, ...) {
   cat("\nCall:\n", paste(deparse(x$call), sep = "\n", collapse = "\n"), 
       "\n\n", sep = "")
   
-  cat("Most likely cluster:", x$cluster[[1]]$name, "\n")
-  cat(" (P-value: ", x$cluster[[1]]$pval, ")\n", sep = "")
+  cat("Most likely cluster (P-value: ", x$cluster[[1]]$pval, "):\n", sep = "")
+  cat(x$cluster[[1]]$name, fill = 76)
   cat("Number of secondary clusters:", length(x$cluster) - 1, "\n\n")
 }
 
@@ -318,8 +322,9 @@ print.rflexscan <- function(x, ...) {
 #' 
 print.rflexscanCluster <- function(x, ...) {
   cat("\n")
-  cat("Census areas included ....:", x$name, "\n")
-  cat("Maximum distance..........: ", x$max_dist, " (areas: ", x$from, " to ", x$to, ")\n", sep = "")
+  cat("Areas included ...........:", x$name, fill = 76)
+  cat("Maximum distance .........: ", x$max_dist, "\n")
+  cat("(areas: ", x$from, " to ", x$to, ")\n", sep = "")
   cat("Number of cases ..........:", x$n_case, "\n")
   
   if (!is.null(x$expected)) {
@@ -365,19 +370,19 @@ summary.rflexscan <- function(object, ...) {
     expected <- sapply(object$cluster, function(i) {i$expected})
     RR <- sapply(object$cluster, function(i) {i$RR})
 
-    table <- cbind(NumArea=n_area, MaxDist=max_dist, Case=n_case, 
-                   Expected=expected, RR=RR, Stats=stats, P=pval)
+    table <- data.frame(NumArea=n_area, MaxDist=max_dist, Case=n_case, 
+                        Expected=expected, RR=RR, Stats=stats, P=pval)
   } else {
     population <- sapply(object$cluster, function(i) {i$population})
 
-    table <- cbind(NumArea=n_area, MaxDist=max_dist, Case=n_case,
-                   Population=population, Stats=stats, P=pval)
+    table <- data.frame(NumArea=n_area, MaxDist=max_dist, Case=n_case,
+                        Population=population, Stats=stats, P=pval)
   }
   row.names(table) <- 1:n_cluster
 
   retval <- list(call=object$call,
                  total_areas=total_areas, total_cases=total_cases,
-                 clusters=table, setting=object$setting)
+                 cluster=table, setting=object$setting)
   
   class(retval) <- "summary.rflexscan"
   return(retval)
@@ -404,28 +409,28 @@ print.summary.rflexscan <- function(x, ...) {
       "\n\n", sep = "")
   
   cat("Clusters:\n")
-  signif <- symnum(x$clusters[,"P"], corr = FALSE, 
+  signif <- symnum(x$cluster[,"P"], corr = FALSE, 
                    na = FALSE, cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1), 
                    symbols = c("***", "**", "*", ".", " "))
   
   dig <- ceiling(log10(x$setting$simcount))
   
   if (toupper(x$setting$model) == "POISSON") {
-    table <- cbind(NumArea = x$clusters[,"NumArea"],
-                   MaxDist = round(x$clusters[,"MaxDist"], 3),
-                   Case = x$clusters[,"Case"],
-                   Expected = round(x$clusters[,"Expected"], 3),
-                   RR = round(x$clusters[,"RR"], 3),
-                   Stats = round(x$clusters[,"Stats"], 3),
-                   P = format(round(x$clusters[,"P"], dig), nsmall = dig),
+    table <- data.frame(NumArea = x$cluster$NumArea,
+                   MaxDist = round(x$cluster$MaxDist, 3),
+                   Case = x$cluster$Case,
+                   Expected = round(x$cluster$Expected, 3),
+                   RR = round(x$cluster$RR, 3),
+                   Stats = round(x$cluster$Stats, 3),
+                   P = format(round(x$cluster$P, dig), nsmall = dig),
                    signif)
   } else {
-    table <- cbind(NumArea = x$clusters[,"NumArea"],
-                   MaxDist = round(x$clusters[,"MaxDist"], 3),
-                   Case = x$clusters[,"Case"],
-                   Population = x$clusters[,"Population"],
-                   Stats = round(x$clusters[,"Stats"], 3),
-                   P = format(round(x$clusters[,"P"], dig), nsmall = dig),
+    table <- data.frame(NumArea = x$cluster$NumArea,
+                   MaxDist = round(x$cluster$MaxDist, 3),
+                   Case = x$cluster$Case,
+                   Population = x$cluster$Population,
+                   Stats = round(x$cluster$Stats, 3),
+                   P = format(round(x$cluster$P, dig), nsmall = dig),
                    signif)
   }
   colnames(table)[ncol(table)] <- ""
@@ -433,7 +438,7 @@ print.summary.rflexscan <- function(x, ...) {
   cat("---\nSignif. codes: ", attr(signif, "legend"), "\n\n")
   
   cat("Limit length of cluster:", x$setting$clustersize, "\n")
-  cat("Number of census areas:", x$total_areas, "\n")
+  cat("Number of areas:", x$total_areas, "\n")
   cat("Total cases:", x$total_cases, "\n")
   if (x$setting$cartesian) {
     cat("Coordinates: Cartesian\n")
@@ -519,7 +524,6 @@ print.summary.rflexscan <- function(x, ...) {
 #' plot(fls, pval = 0.05)
 #' 
 #' @importFrom igraph graph_from_adjacency_matrix V V<- E E<- plot.igraph
-#' @importFrom RColorBrewer brewer.pal
 #' 
 #' @method plot rflexscan
 #' @export
@@ -532,7 +536,7 @@ plot.rflexscan <- function(x,
                   ylab=colnames(x$input$coordinates)[2],
                   xlim=c(min(x$input$coordinates[,1]), max(x$input$coordinates[,1])),
                   ylim=c(min(x$input$coordinates[,2]), max(x$input$coordinates[,2])),
-                  col=brewer.pal(8, "Set1"),
+                  col=palette(),
                   frame_color="gray40",
                   vertex_color="white",
                   ...) {
@@ -630,7 +634,7 @@ plot.rflexscan <- function(x,
 #' 
 choropleth <- function(polygons,
                        fls,
-                       col=brewer.pal(8, "Set1"),
+                       col=palette(),
                        region_color="#F0F0F0",
                        rank=1:length(fls$cluster),
                        pval=1,
