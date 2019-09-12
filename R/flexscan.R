@@ -322,7 +322,8 @@ print.rflexscan <- function(x, ...) {
 #' 
 print.rflexscanCluster <- function(x, ...) {
   cat("\n")
-  cat("Areas included ...........:", x$name, fill = 76)
+  cat("Areas included ...........:\n")
+  cat(x$name, fill = 76)
   cat("Maximum distance .........: ", x$max_dist, "\n")
   cat("(areas: ", x$from, " to ", x$to, ")\n", sep = "")
   cat("Number of cases ..........:", x$n_case, "\n")
