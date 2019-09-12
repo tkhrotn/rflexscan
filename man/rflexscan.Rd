@@ -94,6 +94,9 @@ fls <- rflexscan(x = nc.sids$x, y = nc.sids$y,
 # print rflexscan object
 print(fls)
 
+# print properties of the most likely cluster
+print(fls$cluster[[1]])
+
 # print summary to the terminal
 summary(fls)
 

@@ -142,6 +142,9 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' # print rflexscan object
 #' print(fls)
 #' 
+#' # print properties of the most likely cluster
+#' print(fls$cluster[[1]])
+#' 
 #' # print summary to the terminal
 #' summary(fls)
 #' 
