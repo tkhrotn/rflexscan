@@ -45,41 +45,52 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' statistic developed by Tango and Takahashi (2005) or Kulldorff's circular 
 #' spatial scan statistic (1997), and detect spatial disease clusters.
 #' 
+#' @details
+#' Centroid coordinates for each region should be specified EITHER by Cartesian 
+#' coordinates using arguments \code{x} and \code{y} or by latitudes and 
+#' longitudes using arguments \code{lat} and \code{lon}.
+#' 
 #' @param x
-#' An array of X-coordinates.
+#' A vector of X-coordinates.
 #' 
 #' @param y
-#' An array of Y-coordinates.
+#' A vector of Y-coordinates.
 #' 
 #' @param lat
-#' An array of latitude.
+#' A vector of latitude.
 #' 
 #' @param lon
-#' An array of longitude.
+#' A vector of longitude.
 #' 
 #' @param observed
-#' An array of observed number of diseases.
+#' A vector with the observed number of disease cases.
 #' 
 #' @param expected
-#' An array of expected number of diseases under the null hypothesis. 
+#' A vector with the expected number of disease cases under the null hypothesis. 
 #' This is used on "Poisson" model.
 #' 
 #' @param population
-#' An array of background population at risk in each area. 
+#' A vector with the background population at risk in each area. 
 #' This is used on "Binomial" model.
 #' 
 #' @param nb
-#' A neighbours list or an adjacency matrix.
+#' A neighbors list or an adjacency matrix.
 #' 
 #' @param name
-#' The name of each area.
+#' A vector of names of each area.
 #' 
 #' @param clustersize
-#' The number of maximum spatial cluster size to scan.
+#' The number of maximum spatial cluster size to scan, i.e., the maximum number 
+#' of regions included in the detected cluster
 #' 
 #' @param radius
 #' Radius of Earth to calculate a distance between two sets of latitude and
-#' longitude. It is approximately 6370 km in Japan.
+#' longitude. It is approximately 6370 km in Japan. This parameter is used when 
+#' \code{lat} and \code{lon} are specified. This is DEPRECATED. The 
+#' distance calculated using this parameter is not accurate. This feature is 
+#' implemented to maintain compatibility with FleXScan. It is recommended to 
+#' transform latitude and longitude onto the Cartesian coordinate system 
+#' beforehand and use the x and y parameters.
 #' 
 #' @param stattype
 #' Statistic type to be used (case-insensitive).
@@ -98,7 +109,8 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' }
 #' 
 #' @param ralpha
-#' Parameter for the restricted likelihood ratio statistic.
+#' Threshold parameter of the middle p-value for the restricted likelihood ratio
+#' statistic.
 #' 
 #' @param simcount
 #' The number of Monte Carlo replications to calculate a p-value for statistical
@@ -299,6 +311,7 @@ rflexscan <- function(x, y, lat, lon,
 #' 
 #' @seealso \link{rflexscan}
 #' 
+#' @method print rflexscan
 #' @export
 #' 
 print.rflexscan <- function(x, ...) {
@@ -321,6 +334,7 @@ print.rflexscan <- function(x, ...) {
 #' @param ...
 #' Ignored.
 #' 
+#' @method print rflexscanCluster
 #' @export
 #' 
 print.rflexscanCluster <- function(x, ...) {
@@ -406,6 +420,7 @@ summary.rflexscan <- function(object, ...) {
 #' 
 #' @seealso \link{rflexscan}, \link{summary.rflexscan}
 #' 
+#' @method print summary.rflexscan
 #' @export
 #' 
 print.summary.rflexscan <- function(x, ...) {

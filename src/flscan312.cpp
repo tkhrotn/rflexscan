@@ -1379,7 +1379,7 @@ int     LoadData(const NumericMatrix &case_mat,
     area[i].index = i;
     area[i].l = coord_mat(i, 0);
     area[i].m = coord_mat(i, 1);
-    area[i].id = _strdup(name[i]);
+    area[i].id = strdup(name[i]);
   }
   
   if (K > N)
@@ -1618,24 +1618,25 @@ int     LoadData(const NumericMatrix &case_mat,
         Rprintf("ErrMemory -- minmZ_z");
         Rcpp::stop("ERROR! Code:", ErrMemory);
       }
-      for (i = 0; i <= nGmax; ++i)
+      for (i = 0; i <= nGmax; ++i) {
         if ((minmZ_z[i] = (areaidx *)calloc(K, sizeof(areaidx))) == NULL) {
           Rprintf("ErrMemory -- minmZ_z[i]");
           Rcpp::stop("ERROR! Code:", ErrMemory);
         }
+      }
         
-        /* *minmZ[0..SIMCOUNT] */
-        if ((minmZ = (double **)calloc(SIMCOUNT + 1, sizeof(double *))) == NULL) {
-          Rprintf("ErrMemory -- minmZ");
+      /* *minmZ[0..SIMCOUNT] */
+      if ((minmZ = (double **)calloc(SIMCOUNT + 1, sizeof(double *))) == NULL) {
+        Rprintf("ErrMemory -- minmZ");
+        Rcpp::stop("ERROR! Code:", ErrMemory);
+      }
+      /* minmZ[0..SIMCOUNT][0..snG] */
+      for (i = 0; i <= SIMCOUNT; ++i) {
+        if ((minmZ[i] = (double *)calloc(nGmax + 1, sizeof(double))) == NULL) {
+          Rprintf("ErrMemory -- minmZ[i]");
           Rcpp::stop("ERROR! Code:", ErrMemory);
         }
-        /* minmZ[0..SIMCOUNT][0..snG] */
-        for (i = 0; i <= SIMCOUNT; ++i) {
-          if ((minmZ[i] = (double *)calloc(nGmax + 1, sizeof(double))) == NULL) {
-            Rprintf("ErrMemory -- minmZ[i]");
-            Rcpp::stop("ERROR! Code:", ErrMemory);
-          }
-        }
+      }
     } else {
       if ((MLC_z = (areaidx *)calloc(K, sizeof(areaidx))) == NULL) {
         Rprintf("ErrMemory - MLC_z");

@@ -4,36 +4,58 @@
 \alias{rflexscan}
 \title{Detect spatial disease clusters using the flexible/circular scan statistic}
 \usage{
-rflexscan(x, y, lat, lon, name, observed, expected, population, nb,
-  clustersize = 15, radius = 6370, stattype = "ORIGINAL",
-  scanmethod = "FLEXIBLE", ralpha = 0.2, simcount = 999,
-  rantype = "MULTINOMIAL", comments = "", verbose = FALSE)
+rflexscan(
+  x,
+  y,
+  lat,
+  lon,
+  name,
+  observed,
+  expected,
+  population,
+  nb,
+  clustersize = 15,
+  radius = 6370,
+  stattype = "ORIGINAL",
+  scanmethod = "FLEXIBLE",
+  ralpha = 0.2,
+  simcount = 999,
+  rantype = "MULTINOMIAL",
+  comments = "",
+  verbose = FALSE
+)
 }
 \arguments{
-\item{x}{An array of X-coordinates.}
+\item{x}{A vector of X-coordinates.}
 
-\item{y}{An array of Y-coordinates.}
+\item{y}{A vector of Y-coordinates.}
 
-\item{lat}{An array of latitude.}
+\item{lat}{A vector of latitude.}
 
-\item{lon}{An array of longitude.}
+\item{lon}{A vector of longitude.}
 
-\item{name}{The name of each area.}
+\item{name}{A vector of names of each area.}
 
-\item{observed}{An array of observed number of diseases.}
+\item{observed}{A vector with the observed number of disease cases.}
 
-\item{expected}{An array of expected number of diseases under the null hypothesis. 
+\item{expected}{A vector with the expected number of disease cases under the null hypothesis. 
 This is used on "Poisson" model.}
 
-\item{population}{An array of background population at risk in each area. 
+\item{population}{A vector with the background population at risk in each area. 
 This is used on "Binomial" model.}
 
-\item{nb}{A neighbours list or an adjacency matrix.}
+\item{nb}{A neighbors list or an adjacency matrix.}
 
-\item{clustersize}{The number of maximum spatial cluster size to scan.}
+\item{clustersize}{The number of maximum spatial cluster size to scan, i.e., the maximum number 
+of regions included in the detected cluster}
 
 \item{radius}{Radius of Earth to calculate a distance between two sets of latitude and
-longitude. It is approximately 6370 km in Japan.}
+longitude. It is approximately 6370 km in Japan. This parameter is used when 
+\code{lat} and \code{lon} are specified. This is DEPRECATED. The 
+distance calculated using this parameter is not accurate. This feature is 
+implemented to maintain compatibility with FleXScan. It is recommended to 
+transform latitude and longitude onto the Cartesian coordinate system 
+beforehand and use the x and y parameters.}
 
 \item{stattype}{Statistic type to be used (case-insensitive).
 \describe{
@@ -49,7 +71,8 @@ longitude. It is approximately 6370 km in Japan.}
   \item{"CIRCULAR"}{circular scan statistic by Kulldorff (1997)}
 }}
 
-\item{ralpha}{Parameter for the restricted likelihood ratio statistic.}
+\item{ralpha}{Threshold parameter of the middle p-value for the restricted likelihood ratio
+statistic.}
 
 \item{simcount}{The number of Monte Carlo replications to calculate a p-value for statistical
 test.}
@@ -74,6 +97,11 @@ parameters.
 This function analyzes spatial count data using the flexible spatial scan 
 statistic developed by Tango and Takahashi (2005) or Kulldorff's circular 
 spatial scan statistic (1997), and detect spatial disease clusters.
+}
+\details{
+Centroid coordinates for each region should be specified EITHER by Cartesian 
+coordinates using arguments \code{x} and \code{y} or by latitudes and 
+longitudes using arguments \code{lat} and \code{lon}.
 }
 \examples{
 # load sample data (North Carolina SIDS data)
