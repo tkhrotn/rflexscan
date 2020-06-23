@@ -4,8 +4,15 @@
 \alias{choropleth}
 \title{Display choropleth map}
 \usage{
-choropleth(polygons, fls, col = palette(), region_color = "#F0F0F0",
-  rank = 1:length(fls$cluster), pval = 1, ...)
+choropleth(
+  polygons,
+  fls,
+  col = palette(),
+  region_color = "#F0F0F0",
+  rank = 1:length(fls$cluster),
+  pval = 1,
+  ...
+)
 }
 \arguments{
 \item{polygons}{A SpatialPolygonsDataFrame.}

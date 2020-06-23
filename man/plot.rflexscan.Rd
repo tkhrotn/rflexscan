@@ -4,14 +4,20 @@
 \alias{plot.rflexscan}
 \title{Graph plotting of flexscan results}
 \usage{
-\method{plot}{rflexscan}(x, rank = 1:length(x$cluster), pval = 1,
-  vertexsize = max(x$input$coordinates[, 1]) - min(x$input$coordinates[,
-  1]), xlab = colnames(x$input$coordinates)[1],
+\method{plot}{rflexscan}(
+  x,
+  rank = 1:length(x$cluster),
+  pval = 1,
+  vertexsize = max(x$input$coordinates[, 1]) - min(x$input$coordinates[, 1]),
+  xlab = colnames(x$input$coordinates)[1],
   ylab = colnames(x$input$coordinates)[2],
   xlim = c(min(x$input$coordinates[, 1]), max(x$input$coordinates[, 1])),
   ylim = c(min(x$input$coordinates[, 2]), max(x$input$coordinates[, 2])),
-  col = palette(), frame_color = "gray40", vertex_color = "white",
-  ...)
+  col = palette(),
+  frame_color = "gray40",
+  vertex_color = "white",
+  ...
+)
 }
 \arguments{
 \item{x}{An rflexscan object.}
