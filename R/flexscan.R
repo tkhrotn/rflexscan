@@ -49,6 +49,12 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' Centroid coordinates for each region should be specified EITHER by Cartesian 
 #' coordinates using arguments \code{x} and \code{y} or by latitudes and 
 #' longitudes using arguments \code{lat} and \code{lon}.
+#' Note that \code{lat} and \code{lon} are DEPRECATED due to accuracy issues.
+#' This feature is implemented to maintain compatibility with FleXScan software.
+#' We recommend to transform latitude and longitude onto the Cartesian 
+#' coordinate system beforehand (using \code{spTransform} function in sp package,
+#' for example) and use the \code{x} and \code{y} parameters that are projected
+#' coordinates.
 #' 
 #' @param x
 #' A vector of X-coordinates.
@@ -57,10 +63,10 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' A vector of Y-coordinates.
 #' 
 #' @param lat
-#' A vector of latitude.
+#' (DEPRECATED) A vector of latitude.
 #' 
 #' @param lon
-#' A vector of longitude.
+#' (DEPRECATED) A vector of longitude.
 #' 
 #' @param observed
 #' A vector with the observed number of disease cases.
@@ -90,7 +96,8 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' distance calculated using this parameter is not accurate. This feature is 
 #' implemented to maintain compatibility with FleXScan. It is recommended to 
 #' transform latitude and longitude onto the Cartesian coordinate system 
-#' beforehand and use the x and y parameters.
+#' beforehand and use the \code{x} and \code{y} parameters that are projected
+#' coordinates.
 #' 
 #' @param stattype
 #' Statistic type to be used (case-insensitive).
@@ -130,6 +137,11 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' 
 #' @param verbose
 #' Print progress messages.
+#' 
+#' @param secondary
+#' The number of secondary clusters to be enumerated. If \code{NULL} is 
+#' specified (default), the search for secondary clusters is stopped when the 
+#' Monte Carlo p-value reaches 1.
 #' 
 #' @return 
 #' An \code{rflexscan} object which contains analysis results and specified
@@ -193,7 +205,8 @@ rflexscan <- function(x, y, lat, lon,
                       simcount=999,
                       rantype="MULTINOMIAL",
                       comments="",
-                      verbose=FALSE) {
+                      verbose=FALSE,
+                      secondary=NULL) {
   call <- match.call()
 
   stattype <- match.arg(toupper(stattype), flexscan.stattype)
@@ -256,6 +269,7 @@ rflexscan <- function(x, y, lat, lon,
   setting$cartesian <- as.integer(!latlon)
   setting$simcount <- simcount
   setting$rantype <- as.integer(rantype == "POISSON")
+  setting$secondary <- ifelse(is.null(secondary), -1, secondary)
       
   if (!verbose) {
     output <- capture.output({
@@ -647,7 +661,7 @@ plot.rflexscan <- function(x,
 #' choropleth(sids.shp, fls, pval = 0.05)
 #' }
 #' 
-#' @import sp grDevices graphics stats utils
+#' @import sp grDevices graphics stats utils rgdal
 #' 
 #' @export
 #' 
