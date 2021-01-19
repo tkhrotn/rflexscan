@@ -54,6 +54,9 @@ float	RALPHA = 0.2;
 int		CARTESIAN = 0;	/* 0:latitude&longitude, 1:Euclid distance */
 double  R_EARTH = 6370;
 
+int   SECONDARY = INT_MAX; /* number of secondary clusters */
+bool  ENUM_SECONDARY = false;
+
 int     K = 15;         /* maximum length of connected areas */
 int		K2;
 int     N;              /* number of all areas */
@@ -1125,7 +1128,7 @@ List	FlexScan() {
   
   int		rnk;
   
-  int     SECONDARY = 64;	/* number of secondary clusters */
+  //int     SECONDARY = INT_MAX;	/* number of secondary clusters */
   int		NOMORE = 0;		/* 1:nomore secondary cluster */
   
   List retval;
@@ -1295,7 +1298,7 @@ List	FlexScan() {
       
       rnk = j;
       
-      if (rnk == SIMCOUNT + 1) {
+      if (!ENUM_SECONDARY && rnk == SIMCOUNT + 1) {
         Rprintf("*** There are no more secondary clusters ***\n");
         NOMORE = 1;
       }
@@ -1737,6 +1740,22 @@ void FreeData(void) {
 }
 
 
+
+//' Run main routine of FleXScan.
+//' 
+//' @param setting
+//' A list of parameter setting.
+//' 
+//' @param case_mat
+//' A matrix of case counts.
+//' 
+//' @param coord_mat
+//' A matrix of coordinates.
+//' 
+//' @param adj_mat
+//' A matrix of neighbourhood relationships.
+//' 
+//' @export
 // [[Rcpp::export]]
 List runFleXScan(const List &setting,
                  const NumericMatrix &case_mat,
@@ -1755,6 +1774,13 @@ List runFleXScan(const List &setting,
   RANTYPE = setting["rantype"];
   CARTESIAN = setting["cartesian"];
   R_EARTH = setting["radius"];
+  SECONDARY = setting["secondary"];
+  if (SECONDARY == -1) {
+    ENUM_SECONDARY = false;
+    SECONDARY = INT_MAX;
+  } else {
+    ENUM_SECONDARY = true;
+  }
   
   Rprintf("<STATISTICAL MODEL>\n");
   Rprintf(" %s.\n", (MODEL == 1) ? "Binomial" : "Poisson");
@@ -1778,9 +1804,10 @@ List runFleXScan(const List &setting,
   Rprintf("\nInitializing...\n");
   
   if (LoadData(case_mat, coord_mat, adj_mat) != 0)
-    return(-1);
+    return -1;
   if ((w = (areaidx *)calloc(N, sizeof(areaidx))) == NULL)
-    return(-1);
+    return -1;
+  
   
   Rprintf("\n--  CALCULATING  --\n");
   

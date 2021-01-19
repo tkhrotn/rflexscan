@@ -1,3 +1,7 @@
+# rflexscan 0.4.0
+
+* Add `runFleXScan` function to run analysis without pre-processing.
+
 # rflexscan 0.3.0
 
 * Updated help for `rflexscan` method.
