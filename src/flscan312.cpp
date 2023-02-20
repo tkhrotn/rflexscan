@@ -54,6 +54,23 @@ float	RALPHA = 0.2;
 int		CARTESIAN = 0;	/* 0:latitude&longitude, 1:Euclid distance */
 double  R_EARTH = 6370;
 
+int   SECONDARY = INT_MAX; /* number of secondary clusters */
+bool  ENUM_SECONDARY = false;
+
+#define HOT 0
+#define COLD 1
+int CLUSTERTYPE = 0;
+double init_minmZ;
+bool (* compFunc)(double, double);
+
+bool HotSpotComp(double a, double b) {
+  return a < b;
+}
+
+bool ColdSpotComp(double a, double b) {
+  return a > b;
+}
+
 int     K = 15;         /* maximum length of connected areas */
 int		K2;
 int     N;              /* number of all areas */
@@ -130,6 +147,7 @@ double	*Lbin0;
 
 /* missing */
 int		misarea;
+
 
 /*---------------------------------------------------------------------------------*/
 /* Sort maxstat[] in descending sequence */
@@ -333,13 +351,13 @@ void	CalcLambda0s() {
     c3 = log(nGf / mGf) * nGf;
     maxstat[s] = 0;
     for (nZ1 = 1; nZ1 <= nG[s]; ++nZ1) {
-      if (minmZ[s][nZ1] == mG)
+      if (minmZ[s][nZ1] == init_minmZ)
         continue;
       mZf = (double)minmZ[s][nZ1];
       nZf = (double)nZ1;
       c1 = nZf / mZf;
       c2 = (nGf - nZf) / (mGf - mZf);
-      if (c1 > c2) {
+      if (1/*c1 > c2*/) {
         c1 = log(c1) * nZf;
         c2 = (c2 == 0) ? 0 : log(c2) * (nGf - nZf);
         lambda = c1 + c2 - c3;
@@ -380,7 +398,7 @@ void FlexibleScan0s(int zlen) {
   
   /* check lambda */
   for (s = 0; s <= SIM; ++s) {
-    if (mZ < minmZ[s][nZ[s]]) {
+    if (compFunc(mZ, minmZ[s][nZ[s]])) {
       minmZ[s][nZ[s]] = mZ;
       if (s == 0) {
         for (i = 0; i < zlen; ++i)
@@ -452,7 +470,7 @@ void	CircularScan0s(int zlen) {
     return;
   
   for (s = 0; s <= SIM; ++s) {
-    if (mZ < minmZ[s][nZ[s]]) {
+    if (compFunc(mZ, minmZ[s][nZ[s]])) {
       minmZ[s][nZ[s]] = mZ;
       if (s == 0) {
         for (i = 0; i < zlen; ++i)
@@ -495,7 +513,7 @@ void FlexibleScan1s(int zlen, int ss) {
   
   /* check lambda */
   
-  if (mZ < minmZ[s][nZ[s]]) {
+  if (compFunc(mZ, minmZ[s][nZ[s]])) {
     minmZ[s][nZ[s]] = mZ;
     if (s == 0) {
       for (i = 0; i < zlen; ++i)
@@ -564,7 +582,7 @@ void	CircularScan1s(int zlen, int ss) {
   if (detectedarea[w[zlen-1]] != 0)
     return;
   
-  if (mZ < minmZ[s][nZ[s]]) {
+  if (compFunc(mZ, minmZ[s][nZ[s]])) {
     minmZ[s][nZ[s]] = mZ;
     if (s == 0) {
       for (i = 0; i < zlen; ++i)
@@ -605,6 +623,32 @@ double calcstatP0(int bnZ, double bmZ, int bnG, double bmG) {
   
   return(plmb);
 }
+
+
+double (* calcstatP0Func)(double, double, double, double, double);
+
+double calcstatP0Hot(double nZ, double mZ, double nG, double mG, double Lpoi0) {
+  if ((nZ / mZ) > ((nG - nZ) / (mG - mZ)))
+    return calcstatP0(nZ, mZ, nG, mG) - Lpoi0;
+  else
+    return 0;
+}
+
+double calcstatP0Cold(double nZ, double mZ, double nG, double mG, double Lpoi0) {
+  if ((nZ / mZ) < ((nG - nZ) / (mG - mZ)))
+    return calcstatP0(nZ, mZ, nG, mG) - Lpoi0;
+  else
+    return 0;
+}
+
+double calcstatP0Both(double nZ, double mZ, double nG, double mG, double Lpoi0) {
+  if ((nZ / mZ) != ((nG - nZ) / (mG - mZ)))
+    return calcstatP0(nZ, mZ, nG, mG) - Lpoi0;
+  else
+    return 0;
+}
+
+
 /*---------------------------------------------------------------------------------*/
 void FlexibleScan0l(int zlen) {
   short int i, j;
@@ -620,10 +664,7 @@ void FlexibleScan0l(int zlen) {
     return;
   
   for (s = 0; s <= SIM; ++s) {
-    if ((nZ[s] / mZ) > ((nG[s] - nZ[s]) / (mG - mZ)))
-      st0 = calcstatP0(nZ[s], mZ, nG[s], mG) - Lpoi0[s];
-    else
-      st0 = 0;
+    st0 = calcstatP0Func(nZ[s], mZ, nG[s], mG, Lpoi0[s]);
     if (st0 > maxstat[s]) {
       maxstat[s] = st0;
       if (s == 0) {
@@ -697,10 +738,7 @@ void	CircularScan0l(int zlen) {
     return;
   
   for (s = 0; s <= SIM; ++s) {
-    if ((nZ[s] / mZ) > ((nG[s] - nZ[s]) / (mG - mZ)))
-      st0 = calcstatP0(nZ[s], mZ, nG[s], mG) - Lpoi0[s];
-    else
-      st0 = 0;
+    st0 = calcstatP0Func(nZ[s], mZ, nG[s], mG, Lpoi0[s]);
     if (st0 > maxstat[s]) {
       maxstat[s] = st0;
       if (s == 0) {
@@ -744,10 +782,7 @@ void FlexibleScan1l(int zlen, int ss) {
   if (detectedarea[z[zlen-1]] != 0)
     return;
   
-  if ((nZ[s] / mZ) > ((nG[s] - nZ[s]) / (mG - mZ)))
-    st0 = calcstatP0(nZ[s], mZ, nG[s], mG) - Lpoi0[s];
-  else
-    st0 = 0;
+  st0 = calcstatP0Func(nZ[s], mZ, nG[s], mG, Lpoi0[s]);
   if (st0 > maxstat[s]) {
     maxstat[s] = st0;
     if (s == 0) {
@@ -817,10 +852,7 @@ void	CircularScan1l(int zlen, int ss) {
   if (detectedarea[w[zlen-1]] != 0)
     return;
   
-  if ((nZ[s] / mZ) > ((nG[s] - nZ[s]) / (mG - mZ)))
-    st0 = calcstatP0(nZ[s], mZ, nG[s], mG) - Lpoi0[s];
-  else
-    st0 = 0;
+  st0 = calcstatP0Func(nZ[s], mZ, nG[s], mG, Lpoi0[s]);
   if (st0 > maxstat[s]) {
     maxstat[s] = st0;
     if (s == 0) {
@@ -870,6 +902,31 @@ double calcstatB0(int bnZ, double bmZ, int bnG, double bmG) {
   
   return(blmb);
 }
+
+
+double (* calcstatB0Func)(double, double, double, double, double);
+
+double calcstatB0Hot(double nZ, double mZ, double nG, double mG, double Lbin0) {
+  if ((nZ / mZ) > ((nG - nZ) / (mG - mZ)))
+    return calcstatB0(nZ, mZ, nG, mG) - Lbin0;
+  else
+    return 0;
+}
+
+double calcstatB0Cold(double nZ, double mZ, double nG, double mG, double Lbin0) {
+  if ((nZ / mZ) < ((nG - nZ) / (mG - mZ)))
+    return calcstatB0(nZ, mZ, nG, mG) - Lbin0;
+  else
+    return 0;
+}
+
+double calcstatB0Both(double nZ, double mZ, double nG, double mG, double Lbin0) {
+  if ((nZ / mZ) != ((nG - nZ) / (mG - mZ)))
+    return calcstatB0(nZ, mZ, nG, mG) - Lbin0;
+  else
+    return 0;
+}
+
 /*---------------------------------------------------------------------------------*/
 void FlexibleScanB0(int zlen) {
   short int i, j;
@@ -885,10 +942,7 @@ void FlexibleScanB0(int zlen) {
     return;
   
   for (s = 0; s <= SIM; ++s) {
-    if ((nZ[s] / mZ) > ((nG[s] - nZ[s]) / (mG - mZ)))
-      st0 = calcstatB0(nZ[s], mZ, nG[s], mG) - Lbin0[s];
-    else
-      st0 = 0;
+    st0 = calcstatB0Func(nZ[s], mZ, nG[s], mG, Lbin0[s]);
     if (st0 > maxstat[s]) {
       maxstat[s] = st0;
       if (s == 0) {
@@ -961,10 +1015,7 @@ void	CircularScanB0(int zlen) {
     return;
   
   for (s = 0; s <= SIM; ++s) {
-    if ((nZ[s] / mZ) > ((nG[s] - nZ[s]) / (mG - mZ)))
-      st0 = calcstatB0(nZ[s], mZ, nG[s], mG) - Lbin0[s];
-    else
-      st0 = 0;
+    st0 = calcstatB0Func(nZ[s], mZ, nG[s], mG, Lbin0[s]);
     if (st0 > maxstat[s]) {
       maxstat[s] = st0;
       if (s == 0) {
@@ -1009,10 +1060,7 @@ void FlexibleScanB1(int zlen, int ss) {
   if (detectedarea[z[zlen-1]] != 0)
     return;
   
-  if ((nZ[s] / mZ) > ((nG[s] - nZ[s]) / (mG - mZ)))
-    st0 = calcstatB0(nZ[s], mZ, nG[s], mG) - Lbin0[s];
-  else
-    st0 = 0;
+  st0 = calcstatB0Func(nZ[s], mZ, nG[s], mG, Lbin0[s]);
   if (st0 > maxstat[s]) {
     maxstat[s] = st0;
     if (s == 0) {
@@ -1082,10 +1130,7 @@ void	CircularScanB1(int zlen, int ss) {
   if (detectedarea[w[zlen-1]] != 0)
     return;
   
-  if ((nZ[s] / mZ) > ((nG[s] - nZ[s]) / (mG - mZ)))
-    st0 = calcstatB0(nZ[s], mZ, nG[s], mG) - Lbin0[s];
-  else
-    st0 = 0;
+  st0 = calcstatB0Func(nZ[s], mZ, nG[s], mG, Lbin0[s]);
   if (st0 > maxstat[s]) {
     maxstat[s] = st0;
     if (s == 0) {
@@ -1125,7 +1170,7 @@ List	FlexScan() {
   
   int		rnk;
   
-  int     SECONDARY = 64;	/* number of secondary clusters */
+  //int     SECONDARY = INT_MAX;	/* number of secondary clusters */
   int		NOMORE = 0;		/* 1:nomore secondary cluster */
   
   List retval;
@@ -1133,7 +1178,7 @@ List	FlexScan() {
   if (MODEL == 0 && lors == 0)
     for (i = 0; i <= nGmax; ++i)
       minmZ_zlength[i] = 0;
-  
+
   for (phase = 0; phase <= SECONDARY; ++phase) {
     if (phase == 0) {
       SIM = SIMCOUNT;
@@ -1144,9 +1189,15 @@ List	FlexScan() {
     }
     
     if (MODEL == 0 && lors == 0) {
+      if (CLUSTERTYPE == HOT) {
+        init_minmZ = mG;
+      } else {
+        init_minmZ = 0;
+      }
+      
       for (s = 0; s <= SIM; ++s)
         for (i = 0; i <= nGmax; ++i)
-          minmZ[s][i] = mG;
+          minmZ[s][i] = init_minmZ;
     }
     
     for (s = 0; s <= SIM; ++s)
@@ -1295,7 +1346,7 @@ List	FlexScan() {
       
       rnk = j;
       
-      if (rnk == SIMCOUNT + 1) {
+      if (!ENUM_SECONDARY && rnk == SIMCOUNT + 1) {
         Rprintf("*** There are no more secondary clusters ***\n");
         NOMORE = 1;
       }
@@ -1737,6 +1788,22 @@ void FreeData(void) {
 }
 
 
+
+//' Run main routine of FleXScan.
+//' 
+//' @param setting
+//' A list of parameter setting.
+//' 
+//' @param case_mat
+//' A matrix of case counts.
+//' 
+//' @param coord_mat
+//' A matrix of coordinates.
+//' 
+//' @param adj_mat
+//' A matrix of neighbourhood relationships.
+//' 
+//' @export
 // [[Rcpp::export]]
 List runFleXScan(const List &setting,
                  const NumericMatrix &case_mat,
@@ -1755,6 +1822,32 @@ List runFleXScan(const List &setting,
   RANTYPE = setting["rantype"];
   CARTESIAN = setting["cartesian"];
   R_EARTH = setting["radius"];
+  SECONDARY = setting["secondary"];
+  if (SECONDARY == -1) {
+    ENUM_SECONDARY = false;
+    SECONDARY = INT_MAX;
+  } else {
+    ENUM_SECONDARY = true;
+  }
+  
+  CLUSTERTYPE = setting["clustertype"];
+  
+  switch(CLUSTERTYPE) {
+    case HOT:
+      calcstatP0Func = calcstatP0Hot;
+      calcstatB0Func = calcstatB0Hot;
+      compFunc = HotSpotComp;
+      break;
+    case COLD:
+      calcstatP0Func = calcstatP0Cold;
+      calcstatB0Func = calcstatB0Cold;
+      compFunc = ColdSpotComp;
+      break;
+    default:
+      calcstatP0Func = calcstatP0Hot;
+      calcstatB0Func = calcstatB0Hot;
+      compFunc = HotSpotComp;
+  }
   
   Rprintf("<STATISTICAL MODEL>\n");
   Rprintf(" %s.\n", (MODEL == 1) ? "Binomial" : "Poisson");
@@ -1768,6 +1861,7 @@ List runFleXScan(const List &setting,
   else
     Rprintf("\n");
   Rprintf("<SETTINGS>\n");
+  Rprintf(" Cluster type = %s.\n", (CLUSTERTYPE == HOT) ? "Hot-spot" : "Cold-spot");
   Rprintf(" Maximum area length = %d.\n", K);
   Rprintf(" Number of simulation = %d.\n", SIMCOUNT);
   Rprintf(" Random number = %s.\n", (RANTYPE == 0) ? "Multinomial" : ((MODEL == 0) ? "Poisson" : "Binomial"));
@@ -1778,9 +1872,10 @@ List runFleXScan(const List &setting,
   Rprintf("\nInitializing...\n");
   
   if (LoadData(case_mat, coord_mat, adj_mat) != 0)
-    return(-1);
+    return -1;
   if ((w = (areaidx *)calloc(N, sizeof(areaidx))) == NULL)
-    return(-1);
+    return -1;
+  
   
   Rprintf("\n--  CALCULATING  --\n");
   

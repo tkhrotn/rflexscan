@@ -16,6 +16,9 @@
 #' 
 #' @references 
 #' \itemize{
+#'   \item Otani T. and Takahashi K. (2021). Flexible scan statistics for 
+#'   detecting spatial disease clusters: The rflexscan R package, Journal of 
+#'   Statistical Software 99:13.
 #'   \item Tango T. and Takahashi K. (2005). A flexibly shaped spatial scan 
 #'   statistic for detecting clusters, International Journal of Health
 #'   Geographics 4:11.
@@ -49,6 +52,12 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' Centroid coordinates for each region should be specified EITHER by Cartesian 
 #' coordinates using arguments \code{x} and \code{y} or by latitudes and 
 #' longitudes using arguments \code{lat} and \code{lon}.
+#' Note that \code{lat} and \code{lon} are DEPRECATED due to accuracy issues.
+#' This feature is implemented to maintain compatibility with FleXScan software.
+#' We recommend to transform latitude and longitude onto the Cartesian 
+#' coordinate system beforehand (using \code{spTransform} function in sp package,
+#' for example) and use the \code{x} and \code{y} parameters that are projected
+#' coordinates.
 #' 
 #' @param x
 #' A vector of X-coordinates.
@@ -57,10 +66,10 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' A vector of Y-coordinates.
 #' 
 #' @param lat
-#' A vector of latitude.
+#' (DEPRECATED) A vector of latitude.
 #' 
 #' @param lon
-#' A vector of longitude.
+#' (DEPRECATED) A vector of longitude.
 #' 
 #' @param observed
 #' A vector with the observed number of disease cases.
@@ -90,7 +99,8 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' distance calculated using this parameter is not accurate. This feature is 
 #' implemented to maintain compatibility with FleXScan. It is recommended to 
 #' transform latitude and longitude onto the Cartesian coordinate system 
-#' beforehand and use the x and y parameters.
+#' beforehand and use the \code{x} and \code{y} parameters that are projected
+#' coordinates.
 #' 
 #' @param stattype
 #' Statistic type to be used (case-insensitive).
@@ -131,6 +141,18 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' @param verbose
 #' Print progress messages.
 #' 
+#' @param secondary
+#' The number of secondary clusters to be enumerated. If \code{NULL} is 
+#' specified (default), the search for secondary clusters is stopped when the 
+#' Monte Carlo p-value reaches 1.
+#' 
+#' @param clustertype
+#' Type of cluster to be scanned.
+#' \describe{
+#'   \item{"HOT"}{Hot-spot cluster with elevated risk.}
+#'   \item{"COLD"}{Cold-spot cluster with reduced risk.}
+#' }
+#' 
 #' @return 
 #' An \code{rflexscan} object which contains analysis results and specified
 #' parameters.
@@ -166,6 +188,10 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #' legend("bottomleft", legend = labs, col = palette(), lty = 1)
 #' 
 #' @references
+#'   Otani T. and Takahashi K. (2021). Flexible scan statistics for 
+#'   detecting spatial disease clusters: The rflexscan R package, Journal of 
+#'   Statistical Software 99:13.
+#'   
 #'   Tango T. and Takahashi K. (2005). A flexibly shaped spatial scan 
 #'   statistic for detecting clusters, International Journal of Health 
 #'   Geographics 4:11.
@@ -193,7 +219,9 @@ rflexscan <- function(x, y, lat, lon,
                       simcount=999,
                       rantype="MULTINOMIAL",
                       comments="",
-                      verbose=FALSE) {
+                      verbose=FALSE,
+                      secondary=NULL,
+                      clustertype="HOT") {
   call <- match.call()
 
   stattype <- match.arg(toupper(stattype), flexscan.stattype)
@@ -256,7 +284,14 @@ rflexscan <- function(x, y, lat, lon,
   setting$cartesian <- as.integer(!latlon)
   setting$simcount <- simcount
   setting$rantype <- as.integer(rantype == "POISSON")
-      
+  setting$secondary <- ifelse(is.null(secondary), -1, secondary)
+  
+  if (toupper(clustertype) == "HOT") {
+    setting$clustertype = 0
+  } else {
+    setting$clustertype = 1
+  }
+  
   if (!verbose) {
     output <- capture.output({
       start <- date()
@@ -286,6 +321,12 @@ rflexscan <- function(x, y, lat, lon,
   setting$scanmethod <- scanmethod
   setting$cartesian <- !latlon
   setting$rantype <- rantype
+  
+  if (toupper(clustertype) == "HOT") {
+    setting$clustertype = "Hot-spot"
+  } else {
+    setting$clustertype = "Cold-spot"
+  }
   
   input <- list()
   input$coordinates <- coordinates
@@ -466,7 +507,8 @@ print.summary.rflexscan <- function(x, ...) {
   }
   cat("Model:", x$setting$model, "\n")
   cat("Scanning method:", x$setting$scanmethod, "\n")
-  cat("Statistic type:", x$setting$stattype, "\n\n")
+  cat("Statistic type:", x$setting$stattype, "\n")
+  cat("Cluster type:", x$setting$clustertype, "\n\n")
 }
   
 

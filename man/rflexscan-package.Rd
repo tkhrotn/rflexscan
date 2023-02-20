@@ -21,6 +21,9 @@ developed by Takahashi, Yokoyama, and Tango.
 }
 \references{
 \itemize{
+  \item Otani T. and Takahashi K. (2021). Flexible scan statistics for 
+  detecting spatial disease clusters: The rflexscan R package, Journal of 
+  Statistical Software 99:13.
   \item Tango T. and Takahashi K. (2005). A flexibly shaped spatial scan 
   statistic for detecting clusters, International Journal of Health
   Geographics 4:11.

@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // runFleXScan
 List runFleXScan(const List& setting, const NumericMatrix& case_mat, const NumericMatrix& coord_mat, const NumericMatrix& adj_mat);
 RcppExport SEXP _rflexscan_runFleXScan(SEXP settingSEXP, SEXP case_matSEXP, SEXP coord_matSEXP, SEXP adj_matSEXP) {
