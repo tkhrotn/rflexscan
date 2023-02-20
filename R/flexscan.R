@@ -285,7 +285,7 @@ rflexscan <- function(x, y, lat, lon,
   setting$simcount <- simcount
   setting$rantype <- as.integer(rantype == "POISSON")
   setting$secondary <- ifelse(is.null(secondary), -1, secondary)
-  
+
   if (toupper(clustertype) == "HOT") {
     setting$clustertype = 0
   } else {
@@ -689,7 +689,7 @@ plot.rflexscan <- function(x,
 #' choropleth(sids.shp, fls, pval = 0.05)
 #' }
 #' 
-#' @import sp grDevices graphics stats utils
+#' @import sp grDevices graphics stats utils rgdal
 #' 
 #' @export
 #' 

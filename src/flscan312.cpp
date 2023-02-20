@@ -1829,7 +1829,7 @@ List runFleXScan(const List &setting,
   } else {
     ENUM_SECONDARY = true;
   }
-  
+
   CLUSTERTYPE = setting["clustertype"];
   
   switch(CLUSTERTYPE) {
@@ -1848,7 +1848,7 @@ List runFleXScan(const List &setting,
       calcstatB0Func = calcstatB0Hot;
       compFunc = HotSpotComp;
   }
-  
+
   Rprintf("<STATISTICAL MODEL>\n");
   Rprintf(" %s.\n", (MODEL == 1) ? "Binomial" : "Poisson");
   Rprintf("<SCANING METHOD>\n");

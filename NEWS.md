@@ -1,3 +1,7 @@
+# rflexscan 1.1.0
+
+* Added option for scannning cold-spot cluster with decreased risk.
+
 # rflexscan 1.0.0
 
 * Added reference to the Journal of Statistical Software paper on rflexscan <doi:10.18637/jss.v099.i13>.
