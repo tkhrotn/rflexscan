@@ -2,7 +2,7 @@ Package: rflexscan
 Type: Package
 Title: The Flexible Spatial Scan Statistic
 Version: 1.1.0
-Date: 2021-02-20
+Date: 2023-02-20
 Author: Takahiro Otani,
     Kunihiko Takahashi
 Maintainer: Takahiro Otani <otani@med.nagoya-cu.ac.jp>

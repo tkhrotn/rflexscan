@@ -4,7 +4,7 @@
 
 # rflexscan 1.0.0
 
-* Added reference to the Journal of Statistical Software paper on rflexscan <doi:10.18637/jss.v099.i13>.
+* Added reference to the Journal of Statistical Software paper on rflexscan \doi{10.18637/jss.v099.i13}.
 
 # rflexscan 0.4.0
 
