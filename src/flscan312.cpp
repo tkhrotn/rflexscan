@@ -57,19 +57,10 @@ double  R_EARTH = 6370;
 int   SECONDARY = INT_MAX; /* number of secondary clusters */
 bool  ENUM_SECONDARY = false;
 
-#define HOT 0
-#define COLD 1
+#define HOT 1
+#define COLD 2
+#define BOTH 3
 int CLUSTERTYPE = 0;
-double init_minmZ;
-bool (* compFunc)(double, double);
-
-bool HotSpotComp(double a, double b) {
-  return a < b;
-}
-
-bool ColdSpotComp(double a, double b) {
-  return a > b;
-}
 
 int     K = 15;         /* maximum length of connected areas */
 int		K2;
@@ -126,6 +117,10 @@ double  **minmZ;        /* mimmZ[0..SIMCOUNT][0..snG[s]] */
 int     *minmZ_zlength;
 areaidx **minmZ_z;
 
+double  **maxmZ;        /* maxmZ[0..SIMCOUNT][0..snG[s]] */
+int     *maxmZ_zlength;
+areaidx **maxmZ_z;
+
 int     MLC_zlength;
 areaidx *MLC_z;
 
@@ -139,6 +134,7 @@ short   *masksw;
 
 /* for LLR with restriction */
 double	**pv0;			/* pv0[0..N-1][0..SIMCOUNT] */
+double	**pv0L;			/* pv0c[0..N-1][0..SIMCOUNT] */
 
 double	*Lpoi0;
 
@@ -297,6 +293,22 @@ double Ppfm(int ax, double ex) {
   return tmp0;
 }
 /*---------------------------------------------------------------------------------*/
+/* calculation of Pr{X<x}+0.5Pr{X=x} on Poisson Distribution */
+double PpfmL(int ax, double ex) {
+  double tmp0, tmp1;
+  
+  tmp0 = pplattP(ax, ex);
+  
+  if (ax > 0)
+    tmp1 = pplattP(ax + 1, ex) - pplattP(ax, ex);
+  else
+    tmp1 = pplattP(0, ex);
+  
+  tmp0 = tmp0 + 0.5 * tmp1;
+  
+  return tmp0;
+}
+/*---------------------------------------------------------------------------------*/
 /* Peizer & Platt No.2 for Binomial */
 double pplattB(int xx, int bn, double bp) {
   double	x2, d1, d2, u2, xt0, xt1, xt2;
@@ -342,32 +354,62 @@ double Pbfm(int ax, int bn, double bp) {
 void	CalcLambda0s() {
   int     s;
   int     nZ1, nZ0;
+  int     nC0;
   double  c1, c2, c3, lambda, nGf, mGf, nZf, mZf;
   
   nZ0 = -1;
+  nC0 = -1;
   for (s = 0; s <= SIM; ++s) {
     nGf = (double)nG[s];
     mGf = (double)mG;
     c3 = log(nGf / mGf) * nGf;
     maxstat[s] = 0;
-    for (nZ1 = 1; nZ1 <= nG[s]; ++nZ1) {
-      if (minmZ[s][nZ1] == init_minmZ)
-        continue;
-      mZf = (double)minmZ[s][nZ1];
-      nZf = (double)nZ1;
-      c1 = nZf / mZf;
-      c2 = (nGf - nZf) / (mGf - mZf);
-      if (1/*c1 > c2*/) {
-        c1 = log(c1) * nZf;
-        c2 = (c2 == 0) ? 0 : log(c2) * (nGf - nZf);
-        lambda = c1 + c2 - c3;
-        if (lambda > maxstat[s]) {
-          maxstat[s] = lambda;
-          if (s == 0)
-            nZ0 = nZ1;
+    
+    if (CLUSTERTYPE == HOT || CLUSTERTYPE == BOTH) {
+      for (nZ1 = 1; nZ1 <= nG[s]; ++nZ1) {
+        if (minmZ[s][nZ1] == mG)
+          continue;
+        mZf = (double)minmZ[s][nZ1];
+        nZf = (double)nZ1;
+        c1 = nZf / mZf;
+        c2 = (nGf - nZf) / (mGf - mZf);
+        if (1/*c1 > c2*/) {
+          c1 = log(c1) * nZf;
+          c2 = (c2 == 0) ? 0 : log(c2) * (nGf - nZf);
+          lambda = c1 + c2 - c3;
+          if (lambda > maxstat[s]) {
+            maxstat[s] = lambda;
+            if (s == 0) {
+              nZ0 = nZ1;
+              nC0 = HOT;
+            }
+          };
         };
       };
-    };
+    }
+
+    if (CLUSTERTYPE == COLD || CLUSTERTYPE == BOTH) {
+      for (nZ1 = 1; nZ1 <= nG[s]; ++nZ1) {
+        if (maxmZ[s][nZ1] == 0)
+          continue;
+        mZf = (double)maxmZ[s][nZ1];
+        nZf = (double)nZ1;
+        c1 = nZf / mZf;
+        c2 = (nGf - nZf) / (mGf - mZf);
+        if (1/*c1 > c2*/) {
+          c1 = log(c1) * nZf;
+          c2 = (c2 == 0) ? 0 : log(c2) * (nGf - nZf);
+          lambda = c1 + c2 - c3;
+          if (lambda > maxstat[s]) {
+            maxstat[s] = lambda;
+            if (s == 0) {
+              nZ0 = nZ1;
+              nC0 = COLD;
+            }
+          };
+        };
+      };
+    }
   };
   
   if (nZ0 == (-1)) {
@@ -375,12 +417,21 @@ void	CalcLambda0s() {
     return;
   };
   
-  lkc.z_length = minmZ_zlength[nZ0];
-  for (s = 0; s < lkc.z_length; ++s)
-    lkc.z[s] = minmZ_z[nZ0][s];
-  lkc.lambda = maxstat[0];
-  lkc.nZ = nZ0;
-  lkc.mZ = minmZ[0][nZ0];
+  if (nC0 == HOT) {
+    lkc.z_length = minmZ_zlength[nZ0];
+    for (s = 0; s < lkc.z_length; ++s)
+      lkc.z[s] = minmZ_z[nZ0][s];
+    lkc.lambda = maxstat[0];
+    lkc.nZ = nZ0;
+    lkc.mZ = minmZ[0][nZ0];
+  } else {
+    lkc.z_length = maxmZ_zlength[nZ0];
+    for (s = 0; s < lkc.z_length; ++s)
+      lkc.z[s] = maxmZ_z[nZ0][s];
+    lkc.lambda = maxstat[0];
+    lkc.nZ = nZ0;
+    lkc.mZ = maxmZ[0][nZ0];
+  }
   
   qsort((void *)(&lkc.z[0]), lkc.z_length, sizeof(lkc.z[0]), sort_func1);
 }
@@ -398,12 +449,21 @@ void FlexibleScan0s(int zlen) {
   
   /* check lambda */
   for (s = 0; s <= SIM; ++s) {
-    if (compFunc(mZ, minmZ[s][nZ[s]])) {
+    if (mZ < minmZ[s][nZ[s]]) {
       minmZ[s][nZ[s]] = mZ;
       if (s == 0) {
         for (i = 0; i < zlen; ++i)
           minmZ_z[nZ[s]][i] = z[i];
         minmZ_zlength[nZ[s]] = zlen;
+      };
+    };
+    
+    if (mZ > maxmZ[s][nZ[s]]) {
+      maxmZ[s][nZ[s]] = mZ;
+      if (s == 0) {
+        for (i = 0; i < zlen; ++i)
+          maxmZ_z[nZ[s]][i] = z[i];
+        maxmZ_zlength[nZ[s]] = zlen;
       };
     };
   };
@@ -470,12 +530,21 @@ void	CircularScan0s(int zlen) {
     return;
   
   for (s = 0; s <= SIM; ++s) {
-    if (compFunc(mZ, minmZ[s][nZ[s]])) {
+    if (mZ < minmZ[s][nZ[s]]) {
       minmZ[s][nZ[s]] = mZ;
       if (s == 0) {
         for (i = 0; i < zlen; ++i)
-          minmZ_z[nZ[s]][i] = w[i];
+          minmZ_z[nZ[s]][i] = z[i];
         minmZ_zlength[nZ[s]] = zlen;
+      };
+    };
+    
+    if (mZ > maxmZ[s][nZ[s]]) {
+      maxmZ[s][nZ[s]] = mZ;
+      if (s == 0) {
+        for (i = 0; i < zlen; ++i)
+          maxmZ_z[nZ[s]][i] = z[i];
+        maxmZ_zlength[nZ[s]] = zlen;
       };
     };
   };
@@ -512,8 +581,7 @@ void FlexibleScan1s(int zlen, int ss) {
     return;
   
   /* check lambda */
-  
-  if (compFunc(mZ, minmZ[s][nZ[s]])) {
+  if (mZ < minmZ[s][nZ[s]]) {
     minmZ[s][nZ[s]] = mZ;
     if (s == 0) {
       for (i = 0; i < zlen; ++i)
@@ -522,6 +590,15 @@ void FlexibleScan1s(int zlen, int ss) {
     };
   };
   
+  if (mZ > maxmZ[s][nZ[s]]) {
+    maxmZ[s][nZ[s]] = mZ;
+    if (s == 0) {
+      for (i = 0; i < zlen; ++i)
+        maxmZ_z[nZ[s]][i] = z[i];
+      maxmZ_zlength[nZ[s]] = zlen;
+    };
+  };
+
   if (zlen == 1) {
     for (i = 0; i < N; ++i)
       masksw[i] = -2;
@@ -556,8 +633,22 @@ void FlexibleScan1s(int zlen, int ss) {
     mZ += popul[r];
     nZ[s] += cases[r][s];
     
-    if (pv0[r][s] < RALPHA)
-      FlexibleScan1s(zlen + 1, s);
+    switch (CLUSTERTYPE) {
+    case HOT:
+      if (pv0[r][s] < RALPHA)
+        FlexibleScan1s(zlen + 1, s);
+      break;
+    case COLD:
+      if (pv0L[r][s] < RALPHA)
+        FlexibleScan1s(zlen + 1, s);
+      break;
+    case BOTH:
+      if (pv0[r][s] < RALPHA)
+        FlexibleScan1s(zlen + 1, s);
+      else if (pv0L[r][s] < RALPHA)
+        FlexibleScan1s(zlen + 1, s);
+      break;
+    }
     
     mZ = mZbak;
     nZ[s] -= cases[r][s];
@@ -582,12 +673,21 @@ void	CircularScan1s(int zlen, int ss) {
   if (detectedarea[w[zlen-1]] != 0)
     return;
   
-  if (compFunc(mZ, minmZ[s][nZ[s]])) {
+  if (mZ < minmZ[s][nZ[s]]) {
     minmZ[s][nZ[s]] = mZ;
     if (s == 0) {
       for (i = 0; i < zlen; ++i)
-        minmZ_z[nZ[s]][i] = w[i];
+        minmZ_z[nZ[s]][i] = z[i];
       minmZ_zlength[nZ[s]] = zlen;
+    };
+  };
+  
+  if (mZ > maxmZ[s][nZ[s]]) {
+    maxmZ[s][nZ[s]] = mZ;
+    if (s == 0) {
+      for (i = 0; i < zlen; ++i)
+        maxmZ_z[nZ[s]][i] = z[i];
+      maxmZ_zlength[nZ[s]] = zlen;
     };
   };
   
@@ -599,8 +699,22 @@ void	CircularScan1s(int zlen, int ss) {
   mZ += popul[r];
   nZ[s] += cases[r][s];
   
-  if (pv0[r][s] < RALPHA)
-    CircularScan1s(zlen + 1, s);
+  switch (CLUSTERTYPE) {
+  case HOT:
+    if (pv0[r][s] < RALPHA)
+      CircularScan1s(zlen + 1, s);
+    break;
+  case COLD:
+    if (pv0L[r][s] < RALPHA)
+      CircularScan1s(zlen + 1, s);
+    break;
+  case BOTH:
+    if (pv0[r][s] < RALPHA)
+      CircularScan1s(zlen + 1, s);
+    else if (pv0L[r][s] < RALPHA)
+      CircularScan1s(zlen + 1, s);
+    break;
+  }
   
   mZ = mZbak;
   nZ[s] -= cases[r][s];
@@ -825,8 +939,22 @@ void FlexibleScan1l(int zlen, int ss) {
     nZ[s] += cases[r][s];
     
     /* reentrant */
-    if (pv0[r][s] < RALPHA)
-      FlexibleScan1l(zlen + 1, s);
+    switch (CLUSTERTYPE) {
+    case HOT:
+      if (pv0[r][s] < RALPHA)
+        FlexibleScan1l(zlen + 1, s);
+      break;
+    case COLD:
+      if (pv0L[r][s] < RALPHA)
+        FlexibleScan1l(zlen + 1, s);
+      break;
+    case BOTH:
+      if (pv0[r][s] < RALPHA)
+        FlexibleScan1l(zlen + 1, s);
+      else if (pv0L[r][s] < RALPHA)
+        FlexibleScan1l(zlen + 1, s);
+      break;
+    }
     
     mZ = mZbak;
     nZ[s] -= cases[r][s];
@@ -870,8 +998,22 @@ void	CircularScan1l(int zlen, int ss) {
   mZ += popul[r];
   nZ[s] += cases[r][s];
   
-  if (pv0[r][s] < RALPHA)
-    CircularScan1l(zlen + 1, s);
+  switch (CLUSTERTYPE) {
+  case HOT:
+    if (pv0[r][s] < RALPHA)
+      CircularScan1l(zlen + 1, s);
+    break;
+  case COLD:
+    if (pv0L[r][s] < RALPHA)
+      CircularScan1l(zlen + 1, s);
+    break;
+  case BOTH:
+    if (pv0[r][s] < RALPHA)
+      CircularScan1l(zlen + 1, s);
+    else if (pv0L[r][s] < RALPHA)
+      CircularScan1l(zlen + 1, s);
+    break;
+  }
   
   mZ = mZbak;
   nZ[s] -= cases[r][s];
@@ -1175,9 +1317,12 @@ List	FlexScan() {
   
   List retval;
   
-  if (MODEL == 0 && lors == 0)
-    for (i = 0; i <= nGmax; ++i)
+  if (MODEL == 0 && lors == 0) {
+    for (i = 0; i <= nGmax; ++i) {
       minmZ_zlength[i] = 0;
+      maxmZ_zlength[i] = 0;
+    }
+  }
 
   for (phase = 0; phase <= SECONDARY; ++phase) {
     if (phase == 0) {
@@ -1189,15 +1334,12 @@ List	FlexScan() {
     }
     
     if (MODEL == 0 && lors == 0) {
-      if (CLUSTERTYPE == HOT) {
-        init_minmZ = mG;
-      } else {
-        init_minmZ = 0;
+      for (s = 0; s <= SIM; ++s) {
+        for (i = 0; i <= nGmax; ++i) {
+          minmZ[s][i] = mG;
+          maxmZ[s][i] = 0;
+        }
       }
-      
-      for (s = 0; s <= SIM; ++s)
-        for (i = 0; i <= nGmax; ++i)
-          minmZ[s][i] = init_minmZ;
     }
     
     for (s = 0; s <= SIM; ++s)
@@ -1533,6 +1675,18 @@ int     LoadData(const NumericMatrix &case_mat,
       Rcpp::stop("ERROR! Code:", ErrMemory);
     }
   }
+  
+  /* pv0L[i][s] */
+  if ((pv0L = (double **)calloc(N, sizeof(double *))) == NULL) {
+    Rprintf("ErrMemory - pv0L");
+    Rcpp::stop("ERROR! Code:", ErrMemory);
+  }
+  for (i = 0; i < N; ++i) {
+    if ((pv0L[i] = (double *)calloc(SIMCOUNT + 1, sizeof(double))) == NULL) {
+      Rprintf("ErrMemory -- pv0L");
+      Rcpp::stop("ERROR! Code:", ErrMemory);
+    }
+  }
     
   /* nG[0..SIMCOUNT] */
   if ((nG = (int *)calloc(SIMCOUNT + 1, sizeof(int))) == NULL) {
@@ -1688,6 +1842,38 @@ int     LoadData(const NumericMatrix &case_mat,
           Rcpp::stop("ERROR! Code:", ErrMemory);
         }
       }
+      
+      
+      /* maxmZ_zlength[nGmax] */
+      if ((maxmZ_zlength = (int *)calloc(nGmax + 1, sizeof(int))) == NULL) {
+        Rprintf("ErrMemory - maxmZ_zlength");
+        Rcpp::stop("ERROR! Code:", ErrMemory);
+      }
+      
+      /* maxmZ_z[0..nGmax][K-1] */
+      if ((maxmZ_z = (areaidx **)calloc(nGmax + 1, sizeof(areaidx *))) == NULL) {
+        Rprintf("ErrMemory -- maxmZ_z");
+        Rcpp::stop("ERROR! Code:", ErrMemory);
+      }
+      for (i = 0; i <= nGmax; ++i) {
+        if ((maxmZ_z[i] = (areaidx *)calloc(K, sizeof(areaidx))) == NULL) {
+          Rprintf("ErrMemory -- maxmZ_z[i]");
+          Rcpp::stop("ERROR! Code:", ErrMemory);
+        }
+      }
+      
+      /* *minmZ[0..SIMCOUNT] */
+      if ((maxmZ = (double **)calloc(SIMCOUNT + 1, sizeof(double *))) == NULL) {
+        Rprintf("ErrMemory -- maxmZ");
+        Rcpp::stop("ERROR! Code:", ErrMemory);
+      }
+      /* minmZ[0..SIMCOUNT][0..snG] */
+      for (i = 0; i <= SIMCOUNT; ++i) {
+        if ((maxmZ[i] = (double *)calloc(nGmax + 1, sizeof(double))) == NULL) {
+          Rprintf("ErrMemory -- maxmZ[i]");
+          Rcpp::stop("ERROR! Code:", ErrMemory);
+        }
+      }
     } else {
       if ((MLC_z = (areaidx *)calloc(K, sizeof(areaidx))) == NULL) {
         Rprintf("ErrMemory - MLC_z");
@@ -1759,6 +1945,11 @@ void FreeData(void) {
     free(pv0[i]);
   }
   free(pv0);
+  
+  for (i = 0; i < N; ++i) {
+    free(pv0L[i]);
+  }
+  free(pv0L);
     
   free(nG);
 
@@ -1767,16 +1958,21 @@ void FreeData(void) {
   if (MODEL == 0) {
     if (lors == 0) {
       free(minmZ_zlength);
+      free(maxmZ_zlength);
       
       for (i = 0; i <= nGmax; ++i) {
         free(minmZ_z[i]);
+        free(maxmZ_z[i]);
       }
       free(minmZ_z);
+      free(maxmZ_z);
       
       for (i = 0; i <= SIMCOUNT; ++i) {
         free(minmZ[i]);
+        free(maxmZ[i]);
       }
       free(minmZ);
+      free(maxmZ);
     } else {
       free(MLC_z);
       free(Lpoi0);      
@@ -1836,17 +2032,14 @@ List runFleXScan(const List &setting,
     case HOT:
       calcstatP0Func = calcstatP0Hot;
       calcstatB0Func = calcstatB0Hot;
-      compFunc = HotSpotComp;
       break;
     case COLD:
       calcstatP0Func = calcstatP0Cold;
       calcstatB0Func = calcstatB0Cold;
-      compFunc = ColdSpotComp;
       break;
     default:
-      calcstatP0Func = calcstatP0Hot;
-      calcstatB0Func = calcstatB0Hot;
-      compFunc = HotSpotComp;
+      calcstatP0Func = calcstatP0Both;
+      calcstatB0Func = calcstatB0Both;
   }
 
   Rprintf("<STATISTICAL MODEL>\n");
@@ -1861,7 +2054,17 @@ List runFleXScan(const List &setting,
   else
     Rprintf("\n");
   Rprintf("<SETTINGS>\n");
-  Rprintf(" Cluster type = %s.\n", (CLUSTERTYPE == HOT) ? "Hot-spot" : "Cold-spot");
+  switch (CLUSTERTYPE) {
+  case HOT:
+    Rprintf(" Cluster type = Hot-spot.\n");
+    break;
+  case COLD:
+    Rprintf(" Cluster type = Cold-spot.\n");
+    break;
+  case BOTH:
+    Rprintf(" Cluster type = Both.\n");
+    break;
+  }
   Rprintf(" Maximum area length = %d.\n", K);
   Rprintf(" Number of simulation = %d.\n", SIMCOUNT);
   Rprintf(" Random number = %s.\n", (RANTYPE == 0) ? "Multinomial" : ((MODEL == 0) ? "Poisson" : "Binomial"));
@@ -1887,6 +2090,7 @@ List runFleXScan(const List &setting,
         if (detectedarea[i] != -1)
           for (s = 0; s <= SIM2; ++s) {
             pv0[i][s] = Ppfm(cases[i][s], popul[i]);
+            pv0L[i][s] = PpfmL(cases[i][s], popul[i]);
           }
       }
     }

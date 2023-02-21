@@ -287,7 +287,11 @@ rflexscan <- function(x, y, lat, lon,
   setting$secondary <- ifelse(is.null(secondary), -1, secondary)
 
   if (toupper(clustertype) == "HOT") {
-    setting$clustertype = 0
+    setting$clustertype = 1
+  } else if (toupper(clustertype) == "COLD") {
+    setting$clustertype = 2
+  } else if (toupper(clustertype) == "BOTH") {
+    setting$clustertype = 3
   } else {
     setting$clustertype = 1
   }
@@ -323,9 +327,13 @@ rflexscan <- function(x, y, lat, lon,
   setting$rantype <- rantype
   
   if (toupper(clustertype) == "HOT") {
-    setting$clustertype = "Hot-spot"
+    setting$clustertype = "HOT"
+  } else if (toupper(clustertype) == "COLD") {
+    setting$clustertype = "COLD"
+  } else if (toupper(clustertype) == "BOTH") {
+    setting$clustertype = "BOTH"
   } else {
-    setting$clustertype = "Cold-spot"
+    setting$clustertype = "HOT"
   }
   
   input <- list()
