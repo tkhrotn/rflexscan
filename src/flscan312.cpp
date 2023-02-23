@@ -534,7 +534,7 @@ void	CircularScan0s(int zlen) {
       minmZ[s][nZ[s]] = mZ;
       if (s == 0) {
         for (i = 0; i < zlen; ++i)
-          minmZ_z[nZ[s]][i] = z[i];
+          minmZ_z[nZ[s]][i] = w[i];
         minmZ_zlength[nZ[s]] = zlen;
       };
     };
@@ -543,7 +543,7 @@ void	CircularScan0s(int zlen) {
       maxmZ[s][nZ[s]] = mZ;
       if (s == 0) {
         for (i = 0; i < zlen; ++i)
-          maxmZ_z[nZ[s]][i] = z[i];
+          maxmZ_z[nZ[s]][i] = w[i];
         maxmZ_zlength[nZ[s]] = zlen;
       };
     };
@@ -677,7 +677,7 @@ void	CircularScan1s(int zlen, int ss) {
     minmZ[s][nZ[s]] = mZ;
     if (s == 0) {
       for (i = 0; i < zlen; ++i)
-        minmZ_z[nZ[s]][i] = z[i];
+        minmZ_z[nZ[s]][i] = w[i];
       minmZ_zlength[nZ[s]] = zlen;
     };
   };
@@ -686,7 +686,7 @@ void	CircularScan1s(int zlen, int ss) {
     maxmZ[s][nZ[s]] = mZ;
     if (s == 0) {
       for (i = 0; i < zlen; ++i)
-        maxmZ_z[nZ[s]][i] = z[i];
+        maxmZ_z[nZ[s]][i] = w[i];
       maxmZ_zlength[nZ[s]] = zlen;
     };
   };
