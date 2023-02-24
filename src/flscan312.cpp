@@ -264,45 +264,16 @@ double kaijo(int n) {
   };
 }
 /*---------------------------------------------------------------------------------*/
-/* Peizer & Platt No.2 for Poisson */
-double pplattP(int xx, double lambda) {
-  double	x2, d1, d2, u2;
-  
-  
-  x2 = (double)xx + 0.5;
-  d1 = x2 - lambda + (1.0 / 6.0);
-  d2 = d1 + 0.02 / (double)(xx + 1);
-  u2 = (d2 / (fabs(x2 - lambda))) * sqrt(2.0 * x2 * log(x2 / lambda) + 2.0 * (lambda - x2));
-  
-  return(p_nor(u2));
-}
-/*---------------------------------------------------------------------------------*/
 /* calculation of Pr{X>x}+0.5Pr{X=x} on Poisson Distribution */
 double Ppfm(int ax, double ex) {
   double tmp0, tmp1;
-  
-  tmp0 = 1 - pplattP(ax, ex);
-  
-  if (ax > 0)
-    tmp1 = pplattP(ax, ex) - pplattP(ax - 1, ex);
-  else
-    tmp1 = pplattP(0, ex);
-  
-  tmp0 = tmp0 + 0.5 * tmp1;
-  
-  return tmp0;
-}
-/*---------------------------------------------------------------------------------*/
-/* calculation of Pr{X<x}+0.5Pr{X=x} on Poisson Distribution */
-double PpfmL(int ax, double ex) {
-  double tmp0, tmp1;
-  
-  tmp0 = pplattP(ax, ex);
+
+  tmp0 = 1.0 - R::ppois(ax, ex, true, false);
   
   if (ax > 0)
-    tmp1 = pplattP(ax + 1, ex) - pplattP(ax, ex);
+    tmp1 = R::ppois(ax, ex, true, false) - R::ppois(ax - 1, ex, true, false);
   else
-    tmp1 = pplattP(0, ex);
+    tmp1 = R::ppois(0, ex, true, false);
   
   tmp0 = tmp0 + 0.5 * tmp1;
   
@@ -2090,7 +2061,7 @@ List runFleXScan(const List &setting,
         if (detectedarea[i] != -1)
           for (s = 0; s <= SIM2; ++s) {
             pv0[i][s] = Ppfm(cases[i][s], popul[i]);
-            pv0L[i][s] = PpfmL(cases[i][s], popul[i]);
+            pv0L[i][s] = 1.0 - Ppfm(cases[i][s] - 1, popul[i]);
           }
       }
     }
