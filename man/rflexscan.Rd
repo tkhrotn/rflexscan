@@ -98,8 +98,9 @@ Monte Carlo p-value reaches 1.}
 
 \item{clustertype}{Type of cluster to be scanned.
 \describe{
-  \item{"HOT"}{Hot-spot cluster with elevated risk.}
-  \item{"COLD"}{Cold-spot cluster with reduced risk.}
+  \item{"HOT"}{Hot-spot clusters with elevated risk.}
+  \item{"COLD"}{Cold-spot clusters with reduced risk.}
+  \item{"BOTH"}{Hot- and cold-spot clusters simultaneously.}
 }}
 }
 \value{
