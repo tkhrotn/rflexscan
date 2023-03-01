@@ -4,12 +4,7 @@ using namespace Rcpp;
 /* #pragma inline */
 
 #include <stdlib.h>
-//#include <stdio.h>
 #include <math.h>
-#include <time.h>
-#include <memory.h>
-#include <string.h>
-//#pragma hdrstop
 
 #define ErrMemory (1)
 #define ErrFile0 (2)

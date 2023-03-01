@@ -1,0 +1,17 @@
+bibentry(bibtype = "Article",
+  title        = "Flexible Scan Statistics for Detecting Spatial Disease Clusters: The {rflexscan} {R} Package",
+  author       = c(person(given = "Takahiro",
+                          family = "Otani",
+                          email = "otani@med.nagoya-cu.ac.jp"),
+                   person(given = "Kunihiko",
+                          family = "Takahashi",
+                          email = "kunihikot.dsc@tmd.ac.jp")),
+  journal      = "Journal of Statistical Software",
+  year         = "2021",
+  volume       = "99",
+  number       = "13",
+  pages        = "1--29",
+  doi          = "10.18637/jss.v099.i13",
+  header       = "To cite rflexscan in publications use:"
+)
+
