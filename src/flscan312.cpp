@@ -249,21 +249,6 @@ double p_nor(double z) {
   };
 }
 /*---------------------------------------------------------------------------------*/
-/* n! */
-double kaijo(int n) {
-  int		s;
-  double	tt;
-  
-  if (n == 0) {
-    return 1.0;
-  } else {
-    tt = 0;
-    for (s = 1; s <= n; ++s)
-      tt += (double)log((double)s);
-    return(exp(tt));
-  };
-}
-/*---------------------------------------------------------------------------------*/
 /* calculation of Pr{X>x}+0.5Pr{X=x} on Poisson Distribution */
 double Ppfm(int ax, double ex) {
   double tmp0, tmp1;
@@ -303,14 +288,14 @@ double Pbfm(int ax, int bn, double bp) {
   if (ax > bn - 1)
     tmp0 = 0.0;
   else
-    tmp0 = 1 - pplattB(ax, bn, bp);
+    tmp0 = 1 - R::pbinom(ax, bn, bp, true, false);
   
   if (ax > bn - 1) {
-    tmp1 = 1.0 - pplattB(ax - 1, bn, bp);
+    tmp1 = 1.0 - R::pbinom(ax - 1, bn, bp, true, false);
   } else if (ax > 0) {
-    tmp1 = pplattB(ax, bn, bp) - pplattB(ax - 1, bn, bp);
+    tmp1 = R::pbinom(ax, bn, bp, true, false) - R::pbinom(ax - 1, bn, bp, true, false);
   } else {
-    tmp1 = pplattB(0, bn, bp);
+    tmp1 = R::pbinom(0, bn, bp, true, false);
   };
   
   tmp0 = tmp0 + 0.5 * tmp1;
@@ -1216,8 +1201,22 @@ void FlexibleScanB1(int zlen, int ss) {
     nZ[s] += cases[r][s];
     
     /* reentrant */
-    if (pv0[r][s] < RALPHA)
-      FlexibleScanB1(zlen + 1, s);
+    switch (CLUSTERTYPE) {
+    case HOT:
+      if (pv0[r][s] < RALPHA)
+        FlexibleScanB1(zlen + 1, s);
+      break;
+    case COLD:
+      if (pv0L[r][s] < RALPHA)
+        FlexibleScanB1(zlen + 1, s);
+      break;
+    case BOTH:
+      if (pv0[r][s] < RALPHA)
+        FlexibleScanB1(zlen + 1, s);
+      else if (pv0L[r][s] < RALPHA)
+        FlexibleScanB1(zlen + 1, s);
+      break;
+    }
     
     mZ = mZbak;
     nZ[s] -= cases[r][s];
@@ -1261,8 +1260,23 @@ void	CircularScanB1(int zlen, int ss) {
   mZ += popul[r];
   nZ[s] += cases[r][s];
   
-  if (pv0[r][s] < RALPHA)
-    CircularScanB1(zlen + 1, s);
+  /* reentrant */
+  switch (CLUSTERTYPE) {
+  case HOT:
+    if (pv0[r][s] < RALPHA)
+      CircularScanB1(zlen + 1, s);
+    break;
+  case COLD:
+    if (pv0L[r][s] < RALPHA)
+      CircularScanB1(zlen + 1, s);
+    break;
+  case BOTH:
+    if (pv0[r][s] < RALPHA)
+      CircularScanB1(zlen + 1, s);
+    else if (pv0L[r][s] < RALPHA)
+      CircularScanB1(zlen + 1, s);
+    break;
+  }
   
   mZ = mZbak;
   nZ[s] -= cases[r][s];
@@ -2072,6 +2086,7 @@ List runFleXScan(const List &setting,
         if (detectedarea[i] != -1)
           for (s = 0; s <= SIM2; ++s) {
             pv0[i][s] = Pbfm(cases[i][s], (int)popul[i], totp);
+            pv0L[i][s] = 1.0 - Pbfm(cases[i][s] - 1, (int)popul[i], totp);
           }
       }
     }
