@@ -249,21 +249,6 @@ double p_nor(double z) {
   };
 }
 /*---------------------------------------------------------------------------------*/
-/* n! */
-double kaijo(int n) {
-  int		s;
-  double	tt;
-  
-  if (n == 0) {
-    return 1.0;
-  } else {
-    tt = 0;
-    for (s = 1; s <= n; ++s)
-      tt += (double)log((double)s);
-    return(exp(tt));
-  };
-}
-/*---------------------------------------------------------------------------------*/
 /* calculation of Pr{X>x}+0.5Pr{X=x} on Poisson Distribution */
 double Ppfm(int ax, double ex) {
   double tmp0, tmp1;
@@ -280,22 +265,6 @@ double Ppfm(int ax, double ex) {
   return tmp0;
 }
 /*---------------------------------------------------------------------------------*/
-/* Peizer & Platt No.2 for Binomial */
-double pplattB(int xx, int bn, double bp) {
-  double	x2, d1, d2, u2, xt0, xt1, xt2;
-  double	bq = 1.0 - bp;
-  
-  x2 = (double)xx + 0.5;
-  d1 = x2 - bn * bp  + (bq - bp) / (6.0);
-  d2 = d1 + 0.02 * ((bq / (double)(xx + 1)) - (bp / (double)(bn - xx)) + ((bq - bp) / (2.0 * (bn + 1))));
-  xt0 = log((double)(x2)) - log((double)(bn * bp));
-  xt1 = log((double)(bn - x2)) - log((double)(bn * bq));
-  xt2 = 2.0 / (1.0 + (1 / (6.0 * bn)));
-  u2 = (d2 / (fabs(x2 - bn * bp))) * sqrt(xt2 * (x2 * xt0 + (bn - x2) * xt1));
-  
-  return(p_nor(u2));
-}
-/*---------------------------------------------------------------------------------*/
 /* calculation of Pr{X>x}+0.5Pr{X=x} on Binomial Distribution */
 double Pbfm(int ax, int bn, double bp) {
   double	tmp0, tmp1;
@@ -303,14 +272,14 @@ double Pbfm(int ax, int bn, double bp) {
   if (ax > bn - 1)
     tmp0 = 0.0;
   else
-    tmp0 = 1 - pplattB(ax, bn, bp);
+    tmp0 = 1 - R::pbinom(ax, bn, bp, true, false);
   
   if (ax > bn - 1) {
-    tmp1 = 1.0 - pplattB(ax - 1, bn, bp);
+    tmp1 = 1.0 - R::pbinom(ax - 1, bn, bp, true, false);
   } else if (ax > 0) {
-    tmp1 = pplattB(ax, bn, bp) - pplattB(ax - 1, bn, bp);
+    tmp1 = R::pbinom(ax, bn, bp, true, false) - R::pbinom(ax - 1, bn, bp, true, false);
   } else {
-    tmp1 = pplattB(0, bn, bp);
+    tmp1 = R::pbinom(0, bn, bp, true, false);
   };
   
   tmp0 = tmp0 + 0.5 * tmp1;
@@ -1216,8 +1185,22 @@ void FlexibleScanB1(int zlen, int ss) {
     nZ[s] += cases[r][s];
     
     /* reentrant */
-    if (pv0[r][s] < RALPHA)
-      FlexibleScanB1(zlen + 1, s);
+    switch (CLUSTERTYPE) {
+    case HOT:
+      if (pv0[r][s] < RALPHA)
+        FlexibleScanB1(zlen + 1, s);
+      break;
+    case COLD:
+      if (pv0L[r][s] < RALPHA)
+        FlexibleScanB1(zlen + 1, s);
+      break;
+    case BOTH:
+      if (pv0[r][s] < RALPHA)
+        FlexibleScanB1(zlen + 1, s);
+      else if (pv0L[r][s] < RALPHA)
+        FlexibleScanB1(zlen + 1, s);
+      break;
+    }
     
     mZ = mZbak;
     nZ[s] -= cases[r][s];
@@ -1261,8 +1244,23 @@ void	CircularScanB1(int zlen, int ss) {
   mZ += popul[r];
   nZ[s] += cases[r][s];
   
-  if (pv0[r][s] < RALPHA)
-    CircularScanB1(zlen + 1, s);
+  /* reentrant */
+  switch (CLUSTERTYPE) {
+  case HOT:
+    if (pv0[r][s] < RALPHA)
+      CircularScanB1(zlen + 1, s);
+    break;
+  case COLD:
+    if (pv0L[r][s] < RALPHA)
+      CircularScanB1(zlen + 1, s);
+    break;
+  case BOTH:
+    if (pv0[r][s] < RALPHA)
+      CircularScanB1(zlen + 1, s);
+    else if (pv0L[r][s] < RALPHA)
+      CircularScanB1(zlen + 1, s);
+    break;
+  }
   
   mZ = mZbak;
   nZ[s] -= cases[r][s];
@@ -2072,6 +2070,7 @@ List runFleXScan(const List &setting,
         if (detectedarea[i] != -1)
           for (s = 0; s <= SIM2; ++s) {
             pv0[i][s] = Pbfm(cases[i][s], (int)popul[i], totp);
+            pv0L[i][s] = 1.0 - Pbfm(cases[i][s] - 1, (int)popul[i], totp);
           }
       }
     }
