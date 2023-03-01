@@ -672,10 +672,10 @@ plot.rflexscan <- function(x,
 #' @examples
 #' \donttest{
 #' # load sample data (North Carolina SIDS data)
-#' library(rgdal)
+#' library(sf)
 #' library(spdep)
 #' data("nc.sids")
-#' sids.shp <- readOGR(system.file("shapes/sids.shp", package="spData")[1])
+#' sids.shp <- read_sf(system.file("shapes/sids.shp", package="spData")[1])
 #' 
 #' # calculate the expected numbers of cases
 #' expected <- nc.sids$BIR74 * sum(nc.sids$SID74) / sum(nc.sids$BIR74)
@@ -698,7 +698,7 @@ plot.rflexscan <- function(x,
 #' choropleth(sids.shp, fls, pval = 0.05)
 #' }
 #' 
-#' @import sp grDevices graphics stats utils rgdal
+#' @import grDevices graphics stats utils sf
 #' 
 #' @export
 #' 
@@ -722,6 +722,6 @@ choropleth <- function(polygons,
     index[fls$cluster[[i]]$area] <- i
   }
   index[index == 0 | index > length(col)] <- length(col)
-  plot(polygons, col = col[index], lwd = 0.1, ...)
+  plot(st_geometry(polygons), col = col[index], lwd = 0.1, ...)
   box()
 }

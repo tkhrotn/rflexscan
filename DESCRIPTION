@@ -14,7 +14,7 @@ Description: Functions for the detection of spatial clusters using the flexible
 URL: https://tkhrotn.github.io/rflexscan/
 License: GPL-3
 Depends: R (>= 3.1.0)
-Imports: Rcpp, igraph, rgdal, grDevices, sp
+Imports: Rcpp, igraph, sf, grDevices
 LinkingTo: Rcpp
 Suggests: knitr,
     rmarkdown,

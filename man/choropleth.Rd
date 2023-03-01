@@ -40,10 +40,10 @@ larger than the number of colors in the palette are not highlighted.
 \examples{
 \donttest{
 # load sample data (North Carolina SIDS data)
-library(rgdal)
+library(sf)
 library(spdep)
 data("nc.sids")
-sids.shp <- readOGR(system.file("shapes/sids.shp", package="spData")[1])
+sids.shp <- read_sf(system.file("shapes/sids.shp", package="spData")[1])
 
 # calculate the expected numbers of cases
 expected <- nc.sids$BIR74 * sum(nc.sids$SID74) / sum(nc.sids$BIR74)

@@ -1,6 +1,7 @@
 # rflexscan 1.1.0
 
 * Added option for scannning cold-spot cluster with decreased risk.
+* Replaced `rgdal` package with `sf` package.
 
 # rflexscan 1.0.0
 
