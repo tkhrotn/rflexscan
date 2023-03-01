@@ -313,7 +313,7 @@ void	CalcLambda0s() {
         nZf = (double)nZ1;
         c1 = nZf / mZf;
         c2 = (nGf - nZf) / (mGf - mZf);
-        if (1/*c1 > c2*/) {
+        if (c1 > c2) {
           c1 = log(c1) * nZf;
           c2 = (c2 == 0) ? 0 : log(c2) * (nGf - nZf);
           lambda = c1 + c2 - c3;
@@ -336,7 +336,7 @@ void	CalcLambda0s() {
         nZf = (double)nZ1;
         c1 = nZf / mZf;
         c2 = (nGf - nZf) / (mGf - mZf);
-        if (1/*c1 > c2*/) {
+        if (c1 < c2) {
           c1 = log(c1) * nZf;
           c2 = (c2 == 0) ? 0 : log(c2) * (nGf - nZf);
           lambda = c1 + c2 - c3;
