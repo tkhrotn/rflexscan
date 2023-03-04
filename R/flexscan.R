@@ -154,6 +154,9 @@ flexscan.rantype <- c("MULTINOMIAL", "POISSON")
 #'   \item{"BOTH"}{Hot- and cold-spot clusters simultaneously.}
 #' }
 #' 
+#' @param clusterradius
+#' The maximum radius of spatial cluster to scan.
+#' 
 #' @return 
 #' An \code{rflexscan} object which contains analysis results and specified
 #' parameters.
@@ -222,7 +225,8 @@ rflexscan <- function(x, y, lat, lon,
                       comments="",
                       verbose=FALSE,
                       secondary=NULL,
-                      clustertype="HOT") {
+                      clustertype="HOT",
+                      clusterradius=.Machine$double.xmax) {
   call <- match.call()
 
   stattype <- match.arg(toupper(stattype), flexscan.stattype)
@@ -288,14 +292,16 @@ rflexscan <- function(x, y, lat, lon,
   setting$secondary <- ifelse(is.null(secondary), -1, secondary)
 
   if (toupper(clustertype) == "HOT") {
-    setting$clustertype = 1
+    setting$clustertype <- 1
   } else if (toupper(clustertype) == "COLD") {
-    setting$clustertype = 2
+    setting$clustertype <- 2
   } else if (toupper(clustertype) == "BOTH") {
-    setting$clustertype = 3
+    setting$clustertype <- 3
   } else {
-    setting$clustertype = 1
+    setting$clustertype <- 1
   }
+  
+  setting$clusterradius <- clusterradius
   
   if (!verbose) {
     output <- capture.output({
@@ -507,6 +513,7 @@ print.summary.rflexscan <- function(x, ...) {
   cat("---\nSignif. codes: ", attr(signif, "legend"), "\n\n")
   
   cat("Limit length of cluster:", x$setting$clustersize, "\n")
+  cat("Limit radius of cluster:", x$setting$clusterradius, "\n")
   cat("Number of areas:", x$total_areas, "\n")
   cat("Total cases:", x$total_cases, "\n")
   if (x$setting$cartesian) {

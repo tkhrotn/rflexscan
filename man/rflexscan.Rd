@@ -24,7 +24,8 @@ rflexscan(
   comments = "",
   verbose = FALSE,
   secondary = NULL,
-  clustertype = "HOT"
+  clustertype = "HOT",
+  clusterradius = .Machine$double.xmax
 )
 }
 \arguments{
@@ -102,6 +103,8 @@ Monte Carlo p-value reaches 1.}
   \item{"COLD"}{Cold-spot clusters with reduced risk.}
   \item{"BOTH"}{Hot- and cold-spot clusters simultaneously.}
 }}
+
+\item{clusterradius}{The maximum radius of spatial cluster to scan.}
 }
 \value{
 An \code{rflexscan} object which contains analysis results and specified
