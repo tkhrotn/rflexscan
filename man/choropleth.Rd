@@ -43,7 +43,7 @@ larger than the number of colors in the palette are not highlighted.
 library(sf)
 library(spdep)
 data("nc.sids")
-sids.shp <- read_sf(system.file("shapes/sids.shp", package="spData")[1])
+sids.shp <- st_read(system.file("shapes/sids.gpkg", package="spData")[1], quiet=TRUE)
 
 # calculate the expected numbers of cases
 expected <- nc.sids$BIR74 * sum(nc.sids$SID74) / sum(nc.sids$BIR74)
