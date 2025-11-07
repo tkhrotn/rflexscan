@@ -42,7 +42,7 @@
 
 \item{vertex_color}{Fill color of vertices that are not included in any clusters.}
 
-\item{...}{Other parameters to be passed to \link{plot.igraph} function.}
+\item{...}{Other parameters to be passed to \link[igraph:plot.igraph]{plot.igraph} function.}
 }
 \description{
 Display detected clusters by a graph representation.

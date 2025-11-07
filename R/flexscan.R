@@ -566,7 +566,7 @@ print.summary.rflexscan <- function(x, ...) {
 #' Fill color of vertices that are not included in any clusters.
 #' 
 #' @param ...
-#' Other parameters to be passed to \link{plot.igraph} function.
+#' Other parameters to be passed to \link[igraph:plot.igraph]{plot.igraph} function.
 #' 
 #' @details 
 #' Clusters are colored using the current palette. Please use \link{palette}
