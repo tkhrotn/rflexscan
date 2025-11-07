@@ -1,6 +1,7 @@
 # rflexscan 1.2.0
 
 * Added `clusterradius` argument specifying the maximum radius of cluster.
+* Updated example code to reflect the update of the spData package.
 
 # rflexscan 1.1.0
 
