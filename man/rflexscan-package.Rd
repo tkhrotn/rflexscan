@@ -35,3 +35,12 @@ developed by Takahashi, Yokoyama, and Tango.
 \seealso{
 \code{\link{rflexscan}}
 }
+\author{
+\strong{Maintainer}: Takahiro Otani \email{t.otani@aichi-cc.jp}
+
+Authors:
+\itemize{
+  \item Kunihiko Takahashi
+}
+
+}

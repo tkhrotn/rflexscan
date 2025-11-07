@@ -11,6 +11,11 @@
 
 \item{...}{Ignored.}
 }
+\value{
+No return value, called for side effects.
+Prints the summarized results of the flexible spatial scan statistic, 
+including the number of clusters and test statistics.
+}
 \description{
 Print summary of flexscan results to the terminal.
 }

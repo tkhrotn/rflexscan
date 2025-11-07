@@ -29,6 +29,10 @@ choropleth(
 
 \item{...}{Other parameters to be passed to plot function.}
 }
+\value{
+No return value, called for side effects. 
+This function generates a choropleth map of cluster results.
+}
 \description{
 Display choropleth map of detected clusters.
 }

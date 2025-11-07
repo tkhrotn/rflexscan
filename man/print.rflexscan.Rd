@@ -11,6 +11,10 @@
 
 \item{...}{Ignored.}
 }
+\value{
+No return value, called for side effects.
+Prints a concise summary of the detected clusters and model settings.
+}
 \description{
 Print method for the rflexscan object.
 }

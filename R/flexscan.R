@@ -365,6 +365,10 @@ rflexscan <- function(x, y, lat, lon,
 #' @param ...
 #' Ignored.
 #' 
+#' @return
+#' No return value, called for side effects.
+#' Prints a concise summary of the detected clusters and model settings.
+#' 
 #' @seealso \link{rflexscan}
 #' 
 #' @method print rflexscan
@@ -389,6 +393,11 @@ print.rflexscan <- function(x, ...) {
 #' 
 #' @param ...
 #' Ignored.
+#' 
+#' @return
+#' No return value, called for side effects.
+#' Prints details of a single detected cluster, including member regions and 
+#' statistics.
 #' 
 #' @method print rflexscanCluster
 #' @export
@@ -423,6 +432,11 @@ print.rflexscanCluster <- function(x, ...) {
 #' 
 #' @param ...
 #' Ignored.
+#' 
+#' @return
+#' An object of class \code{"summary.rflexscan"} including summary tables of 
+#' detected clusters, test statistics, and p-values. This object can be printed 
+#' with \code{\link{print.summary.rflexscan}}.
 #' 
 #' @seealso \link{rflexscan}
 #' 
@@ -473,6 +487,11 @@ summary.rflexscan <- function(object, ...) {
 #' 
 #' @param ...
 #' Ignored.
+#' 
+#' @return
+#' No return value, called for side effects.
+#' Prints the summarized results of the flexible spatial scan statistic, 
+#' including the number of clusters and test statistics.
 #' 
 #' @seealso \link{rflexscan}, \link{summary.rflexscan}
 #' 
@@ -566,7 +585,11 @@ print.summary.rflexscan <- function(x, ...) {
 #' Fill color of vertices that are not included in any clusters.
 #' 
 #' @param ...
-#' Other parameters to be passed to \link{plot.igraph} function.
+#' Other parameters to be passed to \link[igraph:plot.igraph]{plot.igraph} function.
+#' 
+#' @return 
+#' No return value, called for side effects.
+#' Displays the detected clusters on a graph.
 #' 
 #' @details 
 #' Clusters are colored using the current palette. Please use \link{palette}
@@ -668,6 +691,10 @@ plot.rflexscan <- function(x,
 #' 
 #' @param ...
 #' Other parameters to be passed to plot function.
+#' 
+#' @return 
+#' No return value, called for side effects. 
+#' This function generates a choropleth map of cluster results.
 #' 
 #' @details 
 #' Clusters are colored using the current palette. Please use \link{palette}

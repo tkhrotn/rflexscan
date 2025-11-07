@@ -11,6 +11,11 @@
 
 \item{...}{Ignored.}
 }
+\value{
+No return value, called for side effects.
+Prints details of a single detected cluster, including member regions and 
+statistics.
+}
 \description{
 Print method for the rflexscanCluster object.
 }

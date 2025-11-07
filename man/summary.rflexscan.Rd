@@ -11,6 +11,11 @@
 
 \item{...}{Ignored.}
 }
+\value{
+An object of class \code{"summary.rflexscan"} including summary tables of 
+detected clusters, test statistics, and p-values. This object can be printed 
+with \code{\link{print.summary.rflexscan}}.
+}
 \description{
 Summary method for rflexscan objects.
 }

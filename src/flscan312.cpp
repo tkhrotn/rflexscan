@@ -1992,6 +1992,9 @@ void FreeData(void) {
 //' @param adj_mat
 //' A matrix of neighbourhood relationships.
 //' 
+//' @return
+//' A list containing the detected clusters, test statistics, and Monte Carlo p-values.
+//' 
 //' @export
 // [[Rcpp::export]]
 List runFleXScan(const List &setting,

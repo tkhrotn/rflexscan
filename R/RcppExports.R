@@ -15,6 +15,9 @@
 #' @param adj_mat
 #' A matrix of neighbourhood relationships.
 #' 
+#' @return
+#' A list containing the detected clusters, test statistics, and Monte Carlo p-values.
+#' 
 #' @export
 runFleXScan <- function(setting, case_mat, coord_mat, adj_mat) {
     .Call('_rflexscan_runFleXScan', PACKAGE = 'rflexscan', setting, case_mat, coord_mat, adj_mat)
